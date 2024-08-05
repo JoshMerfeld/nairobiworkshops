@@ -1263,6 +1263,18 @@ Josh Merfeld
 <h1>Session 2: Hands-on session</h1>
 <p><font size="+10"> Data preparation for SAE </font></p>
 </section>
+<section id="my-slides" class="slide level2">
+<h2>My slides</h2>
+<ul>
+<li><p>Before we get into it, I have put all of my material on the web<br><br></p></li>
+<li><p>You can find my slides (along with copy-pasteable code) AND the data I’m using on my GitHub repository:</p>
+<ul>
+<li><a href="https://github.com/JoshMerfeld/nairobiworkshops">https://github.com/JoshMerfeld/nairobiworkshops</a></li>
+<li>Scroll down to the bottom and you’ll find all of the links you’ll need.</li>
+<li>I’d suggest you have these open during the workshop to make things easier.</li>
+</ul></li>
+</ul>
+</section>
 <section id="lets-get-started" class="slide level2">
 <h2>Let’s get started!</h2>
 <ul>
@@ -1362,7 +1374,7 @@ Josh Merfeld
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href></a><span class="fu">getwd</span>() <span class="co"># this command will show you your current working directory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;/Users/Josh/Dropbox/Papers/UN-SAE/workshops/africa/day1&quot;</code></pre>
+<pre><code>[1] &quot;/Users/Josh/Dropbox/Papers/UN-SAE/workshops/africa/nairobiworkshops&quot;</code></pre>
 </div>
 </div>
 </section>
@@ -1381,7 +1393,7 @@ Josh Merfeld
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href></a><span class="fu">getwd</span>() <span class="co"># this command will show you your current working directory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;/Users/Josh/Dropbox/Papers/UN-SAE/workshops/africa/day1&quot;</code></pre>
+<pre><code>[1] &quot;/Users/Josh/Dropbox/Papers/UN-SAE/workshops/africa/nairobiworkshops&quot;</code></pre>
 </div>
 </div>
 </section>
@@ -1460,7 +1472,7 @@ Josh Merfeld
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href></a><span class="co"># Load packages (libraries)</span></span>
 <span id="cb7-2"><a href></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb7-3"><a href></a><span class="co"># load data</span></span>
-<span id="cb7-4"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;assets/tanzanialsms.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-4"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;day1data/tanzanialsms.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1475,7 +1487,7 @@ Josh Merfeld
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href></a><span class="co"># Load packages (libraries)</span></span>
 <span id="cb8-2"><a href></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb8-3"><a href></a><span class="co"># load data</span></span>
-<span id="cb8-4"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;assets/tanzanialsms.csv&quot;</span>)</span>
+<span id="cb8-4"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;day1data/tanzanialsms.csv&quot;</span>)</span>
 <span id="cb8-5"><a href></a><span class="fu">glimpse</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
@@ -1550,7 +1562,7 @@ $ hh_b29_3       &lt;chr&gt; &quot;meru&quot;, NA, NA, NA, NA, NA, &quot;hai&quo
 <span id="cb10-4"><a href></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb10-5"><a href></a><span class="fu">library</span>(haven)</span>
 <span id="cb10-6"><a href></a><span class="co"># load data</span></span>
-<span id="cb10-7"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;assets/tanzanialsms.dta&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-7"><a href></a>df <span class="ot">&lt;-</span> <span class="fu">read_dta</span>(<span class="st">&quot;day1data/tanzanialsms.dta&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>

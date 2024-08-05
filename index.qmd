@@ -1,0 +1,56 @@
+---
+format: 
+  revealjs:
+    self-contained: true
+    slide-number: false
+    progress: false
+    theme: [serif, custom.scss]
+    width: 1500
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    highlight-style: github
+execute:
+  echo: false
+  warnings: false
+
+# to print as pdf: localhost:6106/?print-pdf (will have to change the local host number)
+
+---
+
+```{r}
+#| label: setup
+widthdefault <- getOption("width")
+options(width = 1500)
+library(tidyverse)
+```
+
+
+
+## Welcome to the website!
+
+- Here, you can find the slides and data used in Josh's presentations. These will be updated in time.
+
+:::: {.columns}
+::: {.column width="50%"}
+- Day 1:
+  - [Day 1 slides](https://joshmerfeld.github.io/nairobiworkshops/day1.html)
+  - [Day 1 data](day1data/data)
+- Day 2:
+  - Day 2 slides
+  - Day 2 data
+- Day 3:
+  - Day 3 slides
+  - Day 3 data
+:::
+
+::: {.column width="50%"}
+- Day 4:
+  - Day 4 slides
+  - Day 4 data
+- Day 5:
+  - Day 5 slides
+  - Day 5 data
+:::
+::::
+

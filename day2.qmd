@@ -76,17 +76,6 @@ library(tidyverse)
 
 
 
-## My slides
-
-- Before we get into it, I have put all of my material on the web<br><br>
-
-- You can find my slides (along with copy-pasteable code) AND the data I'm using on my GitHub repository:
-  - [https://github.com/JoshMerfeld/nairobiworkshops](https://github.com/JoshMerfeld/nairobiworkshops)
-  - Scroll down to the bottom and you'll find all of the links you'll need.
-  - I'd suggest you have these open during the workshop to make things easier.
-
-
-
 
 
 ## Let's get started!
@@ -125,14 +114,14 @@ library(tidyverse)
 
 
 
-## {background-image="day1assets/rstudio1.png"}
-## {background-image="day1assets/rstudio2.png"}
-## {background-image="day1assets/rstudio3.png"}
-## {background-image="day1assets/rstudio4.png"}
-## {background-image="day1assets/rstudio5.png"}
-## {background-image="day1assets/rstudio6.png"}
-## {background-image="day1assets/rstudio7.png"}
-## {background-image="day1assets/rstudio8.png"}
+## {background-image="assets/rstudio1.png"}
+## {background-image="assets/rstudio2.png"}
+## {background-image="assets/rstudio3.png"}
+## {background-image="assets/rstudio4.png"}
+## {background-image="assets/rstudio5.png"}
+## {background-image="assets/rstudio6.png"}
+## {background-image="assets/rstudio7.png"}
+## {background-image="assets/rstudio8.png"}
 
 
 
@@ -282,7 +271,7 @@ library(tidyverse)
 # Load packages (libraries)
 library(tidyverse)
 # load data
-df <- read_csv("day1data/tanzanialsms.csv")
+df <- read_csv("data/tanzanialsms.csv")
 ```
 
 
@@ -299,7 +288,7 @@ df <- read_csv("day1data/tanzanialsms.csv")
 # Load packages (libraries)
 library(tidyverse)
 # load data
-df <- read_csv("day1data/tanzanialsms.csv")
+df <- read_csv("data/tanzanialsms.csv")
 glimpse(df)
 ```
 
@@ -329,7 +318,7 @@ glimpse(df)
 library(tidyverse)
 library(haven)
 # load data
-df <- read_dta("day1data/tanzanialsms.dta")
+df <- read_dta("data/tanzanialsms.dta")
 ```
 
 
