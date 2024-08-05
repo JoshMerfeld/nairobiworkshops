@@ -6,4 +6,4 @@
 - You can find the slides in the following locations:
   - Day1 :
     - [Day 1 slides](day1/day1.html)
-    - [Day 1 data](day1/data)
+    - [Day 1 data](day1data/data)
