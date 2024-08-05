@@ -32,7 +32,6 @@ $code-color: $accent !default;
 
 
 
-
 /*-- scss:rules --*/
 
 /* This changes the size of the code block chunks (the font) */
@@ -45,10 +44,12 @@ code.sourceCode {
 // change color of details button (code fold)
 details {
   background-color: mix($kdisgreen, white, 25%);
-  color: $accent2;
   padding: 5px;
 }
 
+details > summary {
+  color: $accent2;
+}
 
 .reveal a {
   line-height: 1.5em;
@@ -328,3 +329,9 @@ details {
   overflow-y: auto;
   white-space: nowrap;
 }
+
+.pause {
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+

@@ -296,6 +296,7 @@ df <- read_csv("day1data/tanzanialsms.csv")
 
 ```{r}
 #| echo: true
+#| class-output: hscroll
 # Load packages (libraries)
 library(tidyverse)
 # load data
@@ -346,6 +347,7 @@ df <- read_dta("day1data/tanzanialsms.dta")
 
 ```{r}
 #| echo: true
+#| class-output: hscroll
 colnames(df)
 ```
 
@@ -377,6 +379,7 @@ colnames(df)
 
 ```{r}
 #| echo: true
+#| class-output: hscroll
 summary(df$hh_b04)
 ```
 
@@ -391,8 +394,8 @@ summary(df$hh_b04)
   - `table()`: gives you a frequency table
 
 ```{r}
-#| class-output: hscroll
 #| echo: true
+#| class-output: hscroll
 table(df$hh_b04)
 ```
 
@@ -458,15 +461,36 @@ summary(df)
 df <- df |>
   rename(gender = hh_b02, age = hh_b04) |> # <1>
   mutate(boy = gender==1 & age<15, # <2>
-    girl = gender==2 & age<15, # <2>
-    prime_aged_male = gender==1 & age>=15 & age<=64, # <2>
-    prime_aged_female = gender==2 & age>=15 & age<=64, # <2>
-    elderly_male = gender==1 & age>64, # <2>
-    elderly_female = gender==2 & age>64) # <2>
+    girl = gender==2 & age<15,
+    prime_aged_male = gender==1 & age>=15 & age<=64,
+    prime_aged_female = gender==2 & age>=15 & age<=64,
+    elderly_male = gender==1 & age>64,
+    elderly_female = gender==2 & age>64)
 ```
 
-1. Renames the variables `hh_b02` and `hh_b04` to `gender` and `age`, respectively
-2. Creates new variables based on the conditions given
+
+
+
+
+## Pipes example
+
+- I'm going to create some new variables. What do you think this does?
+
+```{r}
+#| echo: true
+#| eval: false
+df <- df |>
+  rename(gender = hh_b02, age = hh_b04) |> # <1>
+  mutate(boy = gender==1 & age<15, # <2>
+    girl = gender==2 & age<15,
+    prime_aged_male = gender==1 & age>=15 & age<=64,
+    prime_aged_female = gender==2 & age>=15 & age<=64,
+    elderly_male = gender==1 & age>64,
+    elderly_female = gender==2 & age>64)
+```
+
+1. Renames the variables `hh_b02` and `hh_b04` to `gender` and `age`, respectively (line 2)
+2. Creates new variables based on the conditions given (lines 3-8)
 
 
 
@@ -479,6 +503,7 @@ df <- df |>
 
 ```{r}
 #| echo: true
+#| class-output: hscroll
 summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_male", "elderly_female")])
 ```
 
@@ -488,6 +513,43 @@ summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_ma
     - I did this by creating a vector of column names (as characters)
   - The resulting variables are logical, or True/False
     - Why?
+
+
+
+
+
+
+## Let's do some more cleaning
+
+- What are some other common data cleaning tasks?
+
+::: {.fragment}
+- Some common things:
+  - Renaming variables
+  - Creating new variables based on existing variables
+    - Doing this based on groups
+  - Replace values (e.g. replacing missings)
+    - i.e. recoding variables
+:::
+
+
+
+
+
+## Let's do some more cleaning
+
+- What are some other common data cleaning tasks?
+
+::: {.inline-fragment}
+- Some common things:
+  - <font style="color:#340063;"><b>Renaming variables</b></font>
+  - <font style="color:#340063;"><b>Creating new variables based on existing variables</b></font>
+    - Doing this based on groups
+  - Replace values (e.g. replacing missings)
+    - i.e. recoding variables
+:::
+
+  
 
 
 
