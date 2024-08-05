@@ -13,6 +13,7 @@ format:
     progress: false
     theme: [serif, custom.scss]
     width: 1500
+    height: 1500*(9/16)
     code-copy: true
     code-fold: show
     code-overflow: wrap
@@ -549,9 +550,26 @@ summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_ma
     - i.e. recoding variables
 :::
 
-  
 
 
+
+
+## What do we want to do?
+
+- To do more, we need to look at the survey questionnaire!
+  - The data I have uploaded is from Section B
+  - You can find the survey questionnaire in the data folder for day 1
+- Here's the data:
+
+```{r}
+#| echo: false
+#| class-output: hscroll
+df <- read_csv("day1data/tanzanialsms.csv")
+df
+```
+
+
+## {background-image="day1assets/survey1.png"}
 
 
 
