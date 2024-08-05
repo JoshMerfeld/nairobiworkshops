@@ -1,0 +1,489 @@
+---
+title: "Your country data and more on using R for SAE"
+subtitle: "Nairobi Workshop: Day 1"
+author: 
+  - name: Ann-Kristin Kreutzmann
+  - name: Josh Merfeld
+date: "26 August 2024"
+date-format: long
+format: 
+  revealjs:
+    self-contained: true
+    slide-number: false
+    progress: false
+    theme: [serif, custom.scss]
+    width: 1500
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    highlight-style: github
+execute:
+  echo: false
+  warnings: false
+
+# to print as pdf: localhost:6106/?print-pdf (will have to change the local host number)
+
+---
+
+```{r}
+#| label: setup
+widthdefault <- getOption("width")
+options(width = 1500)
+library(tidyverse)
+```
+
+
+
+
+
+# Session 1: Country data in R
+
+<font size = "+10"> By you! </font>
+
+
+## Welcome
+
+- Welcome to the first day of the workshop!
+
+. . .
+
+- We are going to start with the task you were given as your pre-workshop assignment.
+
+
+
+
+## A quick reminder
+
+- What did we ask from you?
+
+. . .
+
+1. Describe your country data set, e.g., number of observations and variables, content, sampling design, etc.
+
+2. Describe the variable of interest, e.g., distribution, missing values, outstanding observations, etc.
+
+3. Describe variables that you think are related to the variable of interest.
+
+4. Demonstrate basic visualization of the selected indicators.
+
+
+
+
+
+# Session 2: Hands-on session
+
+<font size = "+10"> Data preparation for SAE </font>
+
+
+
+
+
+## Let's get started!
+
+- Let's get started with the hands-on session.
+
+- As a first step, I'd like to hear from all of you:
+  - How much experience do you have using R?
+  - This is all experience, not just with SAE
+
+
+
+
+
+## Some things to note
+
+- We will be using [<b>RStudio</b>](https://posit.co/download/rstudio-desktop/) throughout the workshops
+  - There are other options you are welcome to use (VS Code is the most common alternative)
+  
+- Two general "data cleaning" pipelines:
+  - The [<b>tidyverse</b>](https://www.tidyverse.org/)
+  - The [<b>data.table</b>](https://rdatatable.gitlab.io/data.table/) package (which builds on base R)
+
+- We will be using the tidyverse
+
+
+
+
+
+## Getting started with RStudio
+
+- Let's start by looking at the layout of RStudio.
+
+- For those of you with ample R experience, nothing here will be new!
+
+
+
+
+## {background-image="assets/rstudio1.png"}
+## {background-image="assets/rstudio2.png"}
+## {background-image="assets/rstudio3.png"}
+## {background-image="assets/rstudio4.png"}
+## {background-image="assets/rstudio5.png"}
+## {background-image="assets/rstudio6.png"}
+## {background-image="assets/rstudio7.png"}
+## {background-image="assets/rstudio8.png"}
+
+
+
+
+
+
+## Why don't you all give it a try
+
+- Create a script in RStudio
+
+- Save that script in a specific place (folder) on your computer
+  - Make sure to keep track of where you save it!
+  - I create a folder for each specific project I work on
+  - e.g. you could create "Nairobi Workshops" and save the script as "day1.R"
+
+
+
+
+
+
+## First things first: the working directory
+
+- The working directory is the folder that R is currently working in
+  - This is where R will look for files
+  - This is where R will save files
+  - This is where R will create files
+
+- You can always write out an entire file path, but this is tedious
+  - More importantly, it makes your code less reproducible since the path is specific to YOUR computer
+
+
+
+
+
+
+## First things first: the working directory
+
+- One nice thing about R is that the working directory will automatically be where you open the script from
+  - Let's try this. Save your script to a folder on your computer, then open the script from that folder.
+  - Let's see if it worked!
+
+```{r}
+#| echo: true
+getwd() # this command will show you your current working directory
+```
+
+
+
+
+
+
+## First things first: the working directory
+
+- You can also set the working directory in RStudio
+  - Session > Set Working Directory > Choose Directory (or Source File Location)
+  - Give it a try and let's see if it worked!
+
+```{r}
+#| echo: true
+getwd() # this command will show you your current working directory
+```
+  
+
+
+
+
+## Always use the same working directory!
+
+- Make sure to always set the working directory to the same location when working in the same script!<br><br>
+
+
+- This will avoid problems later
+  - It also makes your code more reproducible (e.g. if a colleague wants to run it, you just send the entire folder and it works with no changes)
+  
+
+
+
+
+
+## R packages
+
+
+- R is a language that is built on packages
+  - Packages are collections of functions that do specific things
+  - R comes with a set of "base" packages that are installed automatically
+
+
+- We are going to use one package consistently, called the "tidyverse"
+  - This consists of a set of packages that are designed to work together, with data cleaning in mind
+
+
+
+
+
+## R packages
+
+
+The one exception to always using a script? I install packages in the CONSOLE. You can install packages like this:<br><br>
+
+```{r}
+#| echo: true
+#| eval: false
+install.packages("tidyverse") # this will install the tidyverse package. Note the quotes!
+```
+
+- You only need to install a package once on your computer.
+
+
+
+
+
+## R packages
+
+
+The first thing you'll do in your script is load packages. You do it like this:<br><br>
+
+```{r}
+#| echo: true
+#| eval: false
+'''
+This script is part of the Nairobi Workshop on SAE.
+Date: 26 August 2024 (written earlier!)
+Author: Josh Merfeld
+'''
+# Load packages (libraries)
+library(tidyverse)
+```
+
+- Note that the first part is a comment I've added to the script.
+  - I make a lot of comments!
+
+
+
+
+
+
+## Loading data
+
+- Let's start by loading some data.
+  - This is survey data from Tanzania (NPS 5, 2020)
+  - It is a list of all individuals in all households in the survey
+  
+- Let's load the csv version. Tidyverse has a command for this: `read_csv()`
+
+```{r}
+#| echo: true
+# Load packages (libraries)
+library(tidyverse)
+# load data
+df <- read_csv("data/tanzanialsms.csv")
+```
+
+
+
+
+
+
+## Looking at the data
+  
+- `glimpse` is an easy way to look at the data:
+
+```{r}
+#| echo: true
+# Load packages (libraries)
+library(tidyverse)
+# load data
+df <- read_csv("data/tanzanialsms.csv")
+glimpse(df)
+```
+
+
+
+
+
+
+
+## Data is not always in .csv files
+
+- Sometimes files come in other formats
+
+- I have uploaded a Stata file, as well (tanzanialsms.dta)
+  - To read Stata files (common with survey data), we need a different package, called `haven`
+  - After we install it, you can load it using `read_dta()`
+  
+- Give it a try. Install the package and then load the data.
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| code-line-numbers: "|2|5|7"
+# I do not need to install it because I already have it! But if you need it:
+# install.packages("haven")
+# Load packages (libraries)
+library(tidyverse)
+library(haven)
+# load data
+df <- read_dta("data/tanzanialsms.dta")
+```
+
+
+
+
+
+## Objects in memory
+
+- The data frame is a matrix
+  - Each row is an observation and each column is a variables
+  - You can see it in the "environment" pane of RStudio
+
+- We can also see the names of the columns like this:
+
+```{r}
+#| echo: true
+colnames(df)
+```
+
+
+
+
+
+## Calling variables in R
+
+- Some of you might be used to Stata<br><br>
+
+- One big difference between the two is that Stata generally only has one data frame in memory at a time
+  - This means that you can call a variable *without referencing the data frame*<br><br>
+  
+- In R, if you want to look at a variable, you have to tell R which data frame it is in
+  - This is done with the `$` operator
+  - For example, if I want to look at the variable "age" in the data frame "data", I would write `data$age`
+  - In our dataset, the age variable is `hh_b04`
+
+
+
+
+
+## Summary stats for `hh_b04` (age)
+
+- There are two common ways to quickly look at a variable:
+  - `summary()`: gives you mean/median, and a few more
+  - `table()`: gives you a frequency table
+
+```{r}
+#| echo: true
+summary(df$hh_b04)
+```
+
+
+
+
+
+## Summary stats for `hh_b04` (age)
+
+- There are two common ways to quickly look at a variable:
+  - `summary()`: gives you mean/median, and a few more
+  - `table()`: gives you a frequency table
+
+```{r}
+#| class-output: hscroll
+#| echo: true
+table(df$hh_b04)
+```
+
+
+
+
+
+
+## Summary stats for everything
+
+- If you don't specify a variable, it will give you information for the ENTIRE dataframe!
+
+```{r}
+#| echo: true
+#| class-output: hscroll
+summary(df)
+```
+
+
+
+
+
+
+## Variable types
+
+- The most common are numeric, character, and logical
+  - Numeric variables are numbers
+    - For example, the variable `hh_b04` is a numeric variable
+    - Missing value: `NA`
+  - Character variables are text
+    - For example, the variable `y5_hhid` is a character variable
+    - Missing value: `""`
+  - Logical variables are TRUE/FALSE
+    - We don't have any examples here (at least not yet)
+    - Missing value: `NA`
+
+
+
+
+
+
+## Pipes
+
+- One of the most useful things in R is the pipe operator (`|>` or `%>%`)
+  - This is part of the tidyverse package
+  - It allows you to chain commands together
+  - It makes your code much easier to read
+  - It makes your code much easier to write<br><br>
+  
+- Let's use it to clean some variables
+
+
+
+
+
+
+## Pipes example
+
+- I'm going to create some new variables. What do you think this does?
+
+```{r}
+#| echo: true
+df <- df |>
+  rename(gender = hh_b02, age = hh_b04) |> # <1>
+  mutate(boy = gender==1 & age<15, # <2>
+    girl = gender==2 & age<15, # <2>
+    prime_aged_male = gender==1 & age>=15 & age<=64, # <2>
+    prime_aged_female = gender==2 & age>=15 & age<=64, # <2>
+    elderly_male = gender==1 & age>64, # <2>
+    elderly_female = gender==2 & age>64) # <2>
+```
+
+1. Renames the variables `hh_b02` and `hh_b04` to `gender` and `age`, respectively
+2. Creates new variables based on the conditions given
+
+
+
+
+
+
+## Pipes example
+
+- Let's look at the resulting variables:
+
+```{r}
+#| echo: true
+summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_male", "elderly_female")])
+```
+
+
+- What did I do here?
+  - I summarized `df` based on the names of COLUMNS (variables)
+    - I did this by creating a vector of column names (as characters)
+  - The resulting variables are logical, or True/False
+    - Why?
+
+
+
+
+
+
+
+
+
+
