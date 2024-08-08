@@ -6,6 +6,7 @@
 - You can find the slides in the following locations:
   - Day1:
     - [Day 1 slides](https://joshmerfeld.github.io/nairobiworkshops/day1.html)
+    - [Day 1 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day1.pdf)
     - [Day 1 data](day1data/data)
   - Day 2:
     - Day 2 slides
