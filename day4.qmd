@@ -1,0 +1,42 @@
+---
+title: "Your country data and more on using R for SAE"
+subtitle: "Nairobi Workshop: Day 4 (geospatial data)"
+author: 
+  - name: Ann-Kristin Kreutzmann
+  - name: Josh Merfeld
+date: "26 August 2024"
+date-format: long
+format: 
+  revealjs:
+    self-contained: true
+    slide-number: false
+    progress: false
+    theme: [serif, custom.scss]
+    width: 1500
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    highlight-style: github
+execute:
+  echo: false
+  warnings: false
+
+# to print as pdf: localhost:6106/?print-pdf (will have to change the local host number)
+
+---
+
+```{r}
+#| label: setup
+widthdefault <- getOption("width")
+options(width = 1500)
+library(tidyverse)
+```
+
+
+
+
+
+# Session 1: Country data in R
+
+<font size = "+10"> By you! </font>
+
