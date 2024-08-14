@@ -230,7 +230,7 @@ plot_grid(grid, legend, ncol = 1, rel_heights = c(1, 0.1))
   - `.shx` - the index
   - `.dbf` - the attributes
   - `.prj` - the projection
-  - What these all mean isn't important for now, just make sure they are there! Check the week4data folder on github.
+  - What these all mean isn't important for now, just make sure they are there! Check the day4data folder on github.
 
 
 
