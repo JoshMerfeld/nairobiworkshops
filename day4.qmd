@@ -1,5 +1,5 @@
 ---
-title: "Your country data and more on using R for SAE"
+title: "SAE using geospatial data"
 subtitle: "Nairobi Workshop: Day 4 (geospatial data)"
 author: 
   - name: Ann-Kristin Kreutzmann
@@ -22,7 +22,6 @@ execute:
   warnings: false
 
 # to print as pdf: localhost:6106/?print-pdf (will have to change the local host number)
-
 ---
 
 ```{r}
@@ -30,13 +29,220 @@ execute:
 widthdefault <- getOption("width")
 options(width = 1500)
 library(tidyverse)
+library(sf)
+library(cowplot)
+library(haven)
+```
+
+## Introduction to geospatial data
+
+-   [One estimate](https://www.ibm.com/topics/geospatial-data) says that 100 TB of only weather data are generated every single day
+    -   This means there is a lot of data to work with!
+    -   Note that this is also problematic, since it can be difficult to work with such large datasets
+-   Geospatial data is used in a variety of fields
+    -   Agriculture
+    -   Urban planning
+    -   Environmental science
+    -   Public health
+    -   Transportation
+    -   And many more!
+
+## The amount of geospatial data is useful for SAE
+
+-   Geospatial data can be highly predictive of e.g. poverty
+    -   Urbanity
+    -   Land class/cover
+    -   Vegetation indices
+    -   Population counts
+    -   etc. etc.
+-   More importantly: it's available everywhere!
+
+## Think of what you need for SAE
+
+-   You need a sample, e.g. a household survey
+    -   This will only cover some of the country<br><br>
+-   You need auxiliary data that is:
+    -   Predictive of the outcome you care about
+    -   Available throughout the entire country<br><br>
+-   Some countries, use administrative data
+    -   But, importantly, it's often not available or is of low quality!
+
+## A quick example
+
+-   Let's take a look at Malawi
+
+-   Why Malawi?
+
+    -   I have survey data you can use 😃
+    - Only going to use part of Malawi for this example (size of data)
+
+-   Consider the 2019/2020 Integrated Household Survey (IHS5)
+
+    -   Was used for the Malawi Poverty Report 2020
+    -   Can say things about poverty at the district level
+    - If you want to split by urban/rural, only at the region level
+
+## A quick example
+
+![](day4assets/malawipov.png){fig-align="center"}
+
+
+## Malawi admin areas - Northern region only
+
+::: columns
+::: {.column width="70%"}
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+
+admin2 <- read_sf("day4data/mw2.shp")
+admin3 <- read_sf("day4data/mw3.shp")
+admin4 <- read_sf("day4data/mw4.shp")
+
+g1 <- ggplot() + 
+  geom_sf(data = admin2, fill = "white", color = "black") +
+  theme_bw() +
+  labs(subtitle = "District (admin2)")
+g2 <- ggplot() + 
+  geom_sf(data = admin3, fill = "white", color = "black") +
+  theme_bw() +
+  labs(subtitle = "TA (admin3)")
+g3 <- ggplot() + 
+  geom_sf(data = admin4, fill = "white", color = "black") +
+  theme_bw() +
+  labs(subtitle = "EA (admin4)")
+
+plot_grid(g1, g2, g3, ncol = 3)
+```
+:::
+
+::: {.column width="30%"}
+-   Survey only lets us say things about the districts!
+-   What if we want to say something about traditional authorities (TAs)?
+-   Individual TAs might not have enough observations
+-   We could use SAE! But what auxiliary data?
+:::
+:::
+
+
+## Observations at the district and TA level
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+
+admin2 <- read_sf("day4data/mw2.shp")
+admin3 <- read_sf("day4data/mw3.shp")
+admin3 <- st_transform(admin3, crs = st_crs(admin2))
+survey <- read_dta("day4data/householdgeovariables_ihs5.dta")
+survey$DIST_CODE <- substr(survey$ea_id, 1, 3)
+survey$TA_CODE <- substr(survey$ea_id, 1, 5)
+
+temp <- survey |>
+  group_by(DIST_CODE) |>
+  summarise(n = n())
+admin2 <- admin2 |>
+  left_join(temp, by = "DIST_CODE")
+
+temp <- survey |>
+  group_by(TA_CODE) |>
+  summarise(n = n())
+admin3 <- admin3 |>
+  left_join(temp, by = "TA_CODE")
+
+admin3$n[is.na(admin3$n)] <- 0
+
+g1 <- ggplot() + 
+  geom_sf(data = admin2, aes(fill = n), color = NA, lwd = 0.001) +
+  scale_fill_distiller("Observations", palette = "Spectral") +
+  theme_bw() +
+  labs(subtitle = "District (admin2)")
+g2 <- ggplot() + 
+  geom_sf(data = admin3, aes(fill = n), color = NA, lwd = 0.001) +
+  scale_fill_distiller("Observations", palette = "Spectral") +
+  theme_bw() +
+  labs(subtitle = "TA (admin3)")
+
+# extract the legend from one of the plots
+legend <- ggpubr::get_legend(g1 +
+  # horizontal legend
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position = "bottom"))
+grid <- plot_grid(g1 + theme(legend.position = "none"), g2 + theme(legend.position = "none"), ncol = 2)
+plot_grid(grid, legend, ncol = 1, rel_heights = c(1, 0.1))
 ```
 
 
 
 
 
-# Session 1: Country data in R
 
-<font size = "+10"> By you! </font>
+
+## Sub-area model with sectors
+
+-   One option: estimate a sub-area model at the EA level!
+
+-   Steps:
+
+    -   Collapse survey data to the EA level
+    -   Extract geospatial data at the EA level
+    -   Estimate the model
+    
+    
+  
+
+# Getting started with <br>geospatial data {#color-slide background-image="day4assets/titlebackground.jpg"}
+
+```{css, echo=FALSE}
+#color-slide, 
+#color-slide h1 {
+ color: white;
+ text-align: left;
+}
+```
+
+  
+  
+  
+## Getting started with geospatial data
+
+- Due to time, this introduction will be necessarily brief
+
+- We are going to learn about the following:
+  - Shapefiles
+  - Rasters
+  - Extracting data
+
+
+  
+  
+  
+## Shapefiles
+
+- The maps I just showed you are `shapefiles`
+
+- Shapefiles are a common format for geospatial data
+
+- They are made up of several files:
+  - `.shp` - the shape itself
+  - `.shx` - the index
+  - `.dbf` - the attributes
+  - `.prj` - the projection
+  - What these all mean isn't important for now, just make sure they are there! Check the week4data folder on github.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

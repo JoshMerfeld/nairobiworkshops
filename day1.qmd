@@ -126,14 +126,14 @@ library(tidyverse)
 
 
 
-## {background-image="day1assets/rstudio1.png"}
-## {background-image="day1assets/rstudio2.png"}
-## {background-image="day1assets/rstudio3.png"}
-## {background-image="day1assets/rstudio4.png"}
-## {background-image="day1assets/rstudio5.png"}
-## {background-image="day1assets/rstudio6.png"}
-## {background-image="day1assets/rstudio7.png"}
-## {background-image="day1assets/rstudio8.png"}
+## {background-image="day1assets/rstudio1.png" background-size=contain}
+## {background-image="day1assets/rstudio2.png" background-size=contain}
+## {background-image="day1assets/rstudio3.png" background-size=contain}
+## {background-image="day1assets/rstudio4.png" background-size=contain}
+## {background-image="day1assets/rstudio5.png" background-size=contain}
+## {background-image="day1assets/rstudio6.png" background-size=contain}
+## {background-image="day1assets/rstudio7.png" background-size=contain}
+## {background-image="day1assets/rstudio8.png" background-size=contain}
 
 
 
@@ -171,7 +171,7 @@ library(tidyverse)
 
 ## First things first: the working directory
 
-- One nice thing about R is that the working directory will automatically be where you open the script from
+- One nice thing about RStudio is that the working directory will automatically be where you open the script from
   - Let's try this. Save your script to a folder on your computer, then open the script from that folder.
   - Let's see if it worked!
 
@@ -275,8 +275,32 @@ library(tidyverse)
 - Let's start by loading some data.
   - This is survey data from Tanzania (NPS 5, 2020)
   - It is a list of all individuals in all households in the survey
+  - You can find this in the `day1data` folder in the repository
   
-- Let's load the csv version. Tidyverse has a command for this: `read_csv()`
+![](day1assets/github1){fig-align="center"}
+  
+
+
+
+
+## Loading data
+
+- Let's start by loading some data.
+  - This is survey data from Tanzania (NPS 5, 2020)
+  - It is a list of all individuals in all households in the survey
+  - You can find this in the `day1data` folder in the repository
+  
+![](day1assets/github2){fig-align="center"}
+
+
+
+
+  
+## Loading data
+
+- Let's load the csv version. Tidyverse has a command for this: `read_csv()`<br><br>
+- Note that you may have to change the path! Mine is in the day1data folder `within` my working directory (WD).
+  - You need to point to the location of the file from your WD!<br><br>
 
 ```{r}
 #| echo: true
@@ -315,7 +339,7 @@ glimpse(df)
 
 - Sometimes files come in other formats
 
-- I have uploaded a Stata file, as well (tanzanialsms.dta)
+- I have uploaded a Stata file, as well (tanzanialsms.dta), in the same folder
   - To read Stata files (common with survey data), we need a different package, called `haven`
   - After we install it, you can load it using `read_dta()`
   
@@ -473,7 +497,23 @@ summary(df)
 
 ## Pipes example
 
-- I'm going to create some new variables. What do you think this does?
+- I'm going to create some new variables. 
+  - Going to use two columns: `hh_b02` and `hh_b04`
+
+```{r}
+#| echo: true
+#| class-output: hscroll
+glimpse(df[,c("hh_b02", "hh_b04")])
+```
+
+
+
+
+
+
+## Pipes example
+
+- What do you think this does?
 
 ```{r}
 #| echo: true
@@ -483,8 +523,8 @@ df <- df |>
     girl = gender=="female" & age<15,
     prime_aged_male = gender=="male" & age>=15 & age<=64,
     prime_aged_female = gender=="female" & age>=15 & age<=64,
-    elderly_male = gender=="male" & age>64,
-    elderly_female = gender=="female" & age>64)
+    older_male = gender=="male" & age>64,
+    older_female = gender=="female" & age>64)
 ```
 
 
@@ -493,7 +533,7 @@ df <- df |>
 
 ## Pipes example
 
-- I'm going to create some new variables. What do you think this does?
+- What do you think this does?
 
 ```{r}
 #| echo: true
@@ -504,8 +544,8 @@ df <- df |>
     girl = gender=="female" & age<15,
     prime_aged_male = gender=="male" & age>=15 & age<=64,
     prime_aged_female = gender=="female" & age>=15 & age<=64,
-    elderly_male = gender=="male" & age>64,
-    elderly_female = gender=="female" & age>64)
+    older_male = gender=="male" & age>64,
+    older_female = gender=="female" & age>64)
 ```
 
 1. Renames the variables `hh_b02` and `hh_b04` to `gender` and `age`, respectively (line 2)
@@ -523,7 +563,7 @@ df <- df |>
 ```{r}
 #| echo: true
 #| class-output: hscroll
-summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_male", "elderly_female")])
+summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "older_male", "older_female")])
 ```
 
 
@@ -532,6 +572,33 @@ summary(df[,c("boy", "girl", "prime_aged_male", "prime_aged_female", "elderly_ma
     - I did this by creating a vector of column names (as characters)
   - The resulting variables are logical, or True/False
     - Why?
+
+
+
+
+
+
+
+## Pipes example
+
+- It is TRUE/FALSE because it is evaluating the expression
+  - TRUE if the expression is true, FALSE otherwise
+- If we want it to be 0/1, instead, we can simply wrap it in `as.numeric()`
+
+```{r}
+#| echo: true
+#| eval: false
+df <- df |>
+  rename(gender = hh_b02, age = hh_b04) |> # <1>
+  mutate(boy = as.numeric(gender=="male" & age<15), # <2>
+    girl = as.numeric(gender=="female" & age<15),
+    prime_aged_male = as.numeric(gender=="male" & age>=15 & age<=64),
+    prime_aged_female = as.numeric(gender=="female" & age>=15 & age<=64),
+    older_male = as.numeric(gender=="male" & age>64),
+    older_female = as.numeric(gender=="female" & age>64))
+```
+
+
 
 
 
@@ -599,11 +666,11 @@ df
 ## Let's do some cleaning
 
 - Two things:
-  - Calculate the education of the head's mother
+  - Calculate the age of the head
   - Collapse the data to the HOUSEHOLD level, with the following variables:
     - Number of boys/girls
     - Number of prime-aged males/females
-    - Number of elderly males/females
+    - Number of older males/females
     - The head's gender<br><br>
 
 - How do we do this?
@@ -623,7 +690,7 @@ df
 #| echo: true
 #| code-fold: true
 library(tidyverse)
-df <- read_csv("day1data/tanzanialsms.csv") #if it's in your folder, you will just have "tanzanialsms.csv"
+df <- read_csv("day1data/tanzanialsms.csv") #if it's in your WD, you will just have "tanzanialsms.csv"
 ```
 
 
@@ -632,20 +699,20 @@ df <- read_csv("day1data/tanzanialsms.csv") #if it's in your folder, you will ju
 
 ## Back to our task
 
-- Calculate the education of the head's mother
+- Calculate the age of the head
 - Collapse the data to the HOUSEHOLD level, with the following variables:
   - Number of boys/girls
   - Number of prime-aged males/females
-  - Number of elderly males/females
+  - Number of older males/females
   - The head's gender<br><br>
 
 - What are the variables we need? (look at the questionnaire)
 
   ::: {.fragment}
-  - `y5_hhid` (household identifier)
   - `hh_b02` (gender)
   - `hh_b04` (age)
   - `hh_b05` (relationship to head)
+  - `y5_hhid` (household identifier)
   :::
 
 
@@ -655,7 +722,7 @@ df <- read_csv("day1data/tanzanialsms.csv") #if it's in your folder, you will ju
 ## How are we going to do this?
 
 - Create the new variables
-  - Boys, girls, prime-aged males, prime-aged females, elderly males, elderly females
+  - Boys, girls, prime-aged males, prime-aged females, older males, older females
   - The head's gender<br><br>
 
 - Collapse the data to the household level
@@ -695,10 +762,10 @@ dfhh <- dfhh |>
     girl = (gender=="female" & age<15),
     prime_aged_male = (gender=="male" & age>=15 & age<=64),
     prime_aged_female = (gender=="female" & age>=15 & age<=64),
-    elderly_male = (gender=="male" & age>64),
-    elderly_female = (gender=="female" & age>64),
+    older_male = (gender=="male" & age>64),
+    older_female = (gender=="female" & age>64),
     head_male = ifelse(relationship=="head", gender=="male", NA)) |> # <2>
-  select(y5_hhid, boy, girl, prime_aged_male, prime_aged_female, elderly_male, elderly_female, head_male) # <3>
+  select(y5_hhid, boy, girl, prime_aged_male, prime_aged_female, older_male, older_female, head_male) # <3>
 ```
 
 1. Creates new variables based on the conditions given (lines 3-8)
@@ -720,8 +787,8 @@ dfhh <- dfhh |>
     girl = sum(girl, na.rm = TRUE),
     prime_aged_male = sum(prime_aged_male, na.rm = TRUE),
     prime_aged_female = sum(prime_aged_female, na.rm = TRUE),
-    elderly_male = sum(elderly_male, na.rm = TRUE),
-    elderly_female = sum(elderly_female, na.rm = TRUE),
+    older_male = sum(older_male, na.rm = TRUE),
+    older_female = sum(older_female, na.rm = TRUE),
     head_male = max(head_male, na.rm = TRUE))
 summary(dfhh)
 ```
@@ -757,7 +824,33 @@ summary(dfhh)
   - Total household size
   - Proportion of CHILDREN (<15) who are male
   - Proportion of ADULTS (15+) who are female
+
+
+
+
+
+
+
+## My code for this
   
+```{r}
+#| echo: true
+#| code-fold: show
+# create new variables from the clean df data
+dfhh <- df |>
+  rename(gender = hh_b02, age = hh_b04, relationship = hh_b05) |>
+  mutate(male_child = ifelse(age<15, gender=="male", NA),
+    female_adult = ifelse(age>=15, gender=="female", NA)) |>
+  select(y5_hhid, male_child, female_adult)
+# now collapse
+dfhh <- dfhh |>
+  group_by(y5_hhid) |>
+  summarize(prop_children_male = mean(male_child, na.rm = TRUE),
+    prop_adult_female = mean(female_adult, na.rm = TRUE),
+    hhsize = n()) |>
+  ungroup()
+summary(dfhh) # note the NAs for prop_children_male! Why is it missing?
+```
 
 
 
@@ -796,7 +889,8 @@ df <- read_csv("day1data/tanzanialsms.csv") # if it's in your folder, you will j
 - `geom_point` can be replaced with all sorts of "geoms"!
   - `geom_line`
   - `geom_bar`
-  - `geom_density` (this will have no)
+  - `geom_density` (this will have no `y` variable)
+  - `geom_histogram` (same)
 
 
 
@@ -809,7 +903,7 @@ df <- read_csv("day1data/tanzanialsms.csv") # if it's in your folder, you will j
 #| echo: true
 #| code-fold: show
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04))
+  geom_histogram(data = df, aes(x = hh_b04))
 ```
 
 
@@ -824,8 +918,8 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density")
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count")
 ```
 :::
 
@@ -834,8 +928,8 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density")
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count")
 ```
 :::
 
@@ -853,10 +947,13 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
+
+- You can look at all the built-in themes [here](https://ggplot2.tidyverse.org/reference/ggtheme.html)^[[https://ggplot2.tidyverse.org/reference/ggtheme.html](https://ggplot2.tidyverse.org/reference/ggtheme.html)]
+
 :::
 
 ::: {.column width="55%"}
@@ -864,8 +961,8 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
 :::
@@ -884,8 +981,8 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw() +
   facet_wrap(~hh_b02, ncol = 1)
 ```
@@ -896,8 +993,8 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw() +
   facet_wrap(~hh_b02, ncol = 1)
 ```
@@ -917,8 +1014,8 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw() +
   facet_wrap(~hh_b02, ncol = 2)
 ```
@@ -929,8 +1026,8 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04)) +
+  labs(x = "Age", y = "Count") +
   theme_bw() +
   facet_wrap(~hh_b02, ncol = 2)
 ```
@@ -950,11 +1047,13 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
+  geom_histogram(data = df, 
     aes(x = hh_b04, color = hh_b02)) +
-  labs(x = "Age", y = "Density") +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
+
+- This is a `stacked` histogram, which I don't like (hard to see the differences)
 :::
 
 ::: {.column width="55%"}
@@ -962,8 +1061,8 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04, color = hh_b02)) +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04, color = hh_b02)) +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
 :::
@@ -972,42 +1071,39 @@ ggplot() +
 
 
 
-
-
-## Cleaning up the legend
+## Putting them on one plot is simple, too!
 
 :::: {.columns}
 
-::: {.column width="50%"}
-- Let's use the `scale_color_brewer` function to clean up the legend (title and colors)
-
+::: {.column width="45%"}
 ```{r}
 #| echo: true
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, color = hh_b02)) +
-  scale_color_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, color = hh_b02), 
+    position = "identity") +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
+
+- This "unstacks" the histogram
+- But now it's hard to see in a different way!
 :::
 
-::: {.column width="50%"}
+::: {.column width="55%"}
 ```{r}
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, aes(x = hh_b04, color = hh_b02)) +
-  scale_color_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, aes(x = hh_b04, color = hh_b02), position = "identity") +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
 :::
 
 ::::
-
 
 
 
@@ -1023,27 +1119,27 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02)) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity") +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
 
-- Note how hard it is to see both! 
+- Still hard to see both! 
 ```{r}
 #| echo: true
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02),
-    alpha = 0.5) + # <1>
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
-1. Change opacity with `alpha`
+1. Change opacity with `alpha` (OUTSIDE the `aes()`)
 :::
 
 ::: {.column width="50%"}
@@ -1051,21 +1147,93 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02)) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity") +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02), alpha = 0.5) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  labs(x = "Age", y = "Count") +
   theme_bw()
 ```
 :::
 
 ::::
+
+
+
+
+
+
+
+## Cleaning up the legend with `scale_fill_brewer`
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+#| code-fold: show
+#| eval: false
+# Let's use the `scale_fill_brewer` function to clean up the legend (title and fill colors)
+ggplot() +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count") +
+  theme_bw()
+```
+
+
+```{r}
+#| echo: true
+#| code-fold: show
+#| eval: false
+# Note that difference with `color`
+ggplot() +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, color = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_color_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count") +
+  theme_bw()
+```
+- scale_color_brewer vs. scale_fill_brewer
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| evaluate: true
+ggplot() +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count") +
+  theme_bw()
+ggplot() +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, color = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_color_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count") +
+  theme_bw()
+```
+:::
+
+::::
+
 
 
 
@@ -1082,25 +1250,27 @@ ggplot() +
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02),
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
     alpha = 0.5) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count", title = "A. Bottom legend") +
   theme_bw() +
   theme(legend.position = "bottom")
 ```
-
+<br>
 ```{r}
 #| echo: true
 #| code-fold: show
 #| eval: false
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02),
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
     alpha = 0.5) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count", title = "B. Legend in plot") +
   theme_bw() +
   theme(legend.position = c(0.9, 0.8))
 ```
@@ -1111,17 +1281,21 @@ ggplot() +
 #| echo: false
 #| evaluate: true
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02), alpha = 0.5) + # <1>
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count", title = "A. Bottom legend") +
   theme_bw() +
   theme(legend.position = "bottom")
 ggplot() +
-  geom_density(data = df, 
-    aes(x = hh_b04, fill = hh_b02), alpha = 0.5) +
-  scale_fill_brewer("Gender", palette = "Set2") +
-  labs(x = "Age", y = "Density") +
+  geom_histogram(data = df, 
+    aes(x = hh_b04, fill = hh_b02), 
+    position = "identity",
+    alpha = 0.5) +
+  scale_fill_brewer("Gender", palette = "Accent") +
+  labs(x = "Age", y = "Count", title = "B. Legend in plot") +
   theme_bw() +
   theme(legend.position = c(0.9, 0.8))
 ```
@@ -1177,7 +1351,7 @@ ggplot() +
 #| echo: true
 #| code-fold: show
 #| class-output: hscroll
-table(df$hh_b11)
+unique(df$hh_b11)
 ```
 <br>
 - The relevant two values are "AGRICULTURE / LIVESTOCK" and "student"
@@ -1252,7 +1426,8 @@ ggplot() +
   geom_point(data = dfgroups, 
     aes(x = age_groups, y = ag)) +
   labs(x = "Age group", 
-    y = "Proportion of respondents in category") +
+    y = "Proportion of respondents in category",
+    title = "Agriculture") +
   theme_bw()
 ```
 <br><br>
@@ -1264,7 +1439,8 @@ ggplot() +
   geom_point(data = dfgroups, 
     aes(x = age_groups, y = ed)) +
   labs(x = "Age group", 
-    y = "Proportion of respondents in category") +
+    y = "Proportion of respondents in category",
+    title = "Student") +
   theme_bw()
 ```
 :::
@@ -1277,13 +1453,15 @@ ggplot() +
   geom_point(data = dfgroups, 
     aes(x = age_groups, y = ag)) +
   labs(x = "Age group", 
-    y = "Proportion of respondents in category") +
+    y = "Proportion of respondents in category",
+    title = "Agriculture") +
   theme_bw()
 ggplot() +
   geom_point(data = dfgroups, 
     aes(x = age_groups, y = ed)) +
   labs(x = "Age group", 
-    y = "Proportion of respondents in category") +
+    y = "Proportion of respondents in category",
+    title = "Student") +
   theme_bw()
 ```
 :::
@@ -1350,8 +1528,7 @@ ggplot() +
 ::: {.column width="50%"}
 <br>
 
-- We can specify individual colors.
-- Look what happens here:
+- We can specify individual colors, OUTSIDE the `aes()`.
 
 ```{r}
 #| echo: true
@@ -1519,47 +1696,6 @@ ggplot() +
 
 
 
-## Finally, adding them together!
-
-```{r}
-#| echo: true
-#| code-fold: show
-#| eval: false
-ggplot() +
-  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
-  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
-  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
-  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
-  scale_x_continuous(breaks = as.numeric(unique(dfgroups$age_groups)), labels = unique(dfgroups$age_groups)) + # <2>
-  labs(x = "Age group", y = "Proportion of respondents in category") +
-  scale_color_manual("Occupation:", values = c("Ag" = colors[1], "Educ." = colors[2])) +
-  theme_bw() +
-  theme(legend.position = c(0.9, 0.8))
-```
-
-
-
-
-## How it looks
-
-```{r}
-#| echo: false
-#| eval: true
-ggplot() +
-  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
-  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
-  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
-  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
-  scale_x_continuous(breaks = as.numeric(unique(dfgroups$age_groups)), labels = unique(dfgroups$age_groups)) + # <2>
-  labs(x = "Age group", y = "Proportion of respondents in category") +
-  scale_color_manual("Occupation:", values = c("Ag" = colors[1], "Educ." = colors[2])) +
-  theme_bw() +
-  theme(legend.position = c(0.9, 0.8))
-```
-
-
-
-
 ## What about doing line graphs?
 
 ```{r}
@@ -1585,6 +1721,50 @@ ggplot() +
 
 
 
+## Finally, the points and lines together
+
+```{r}
+#| echo: true
+#| code-fold: show
+#| eval: false
+ggplot() +
+  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
+  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
+  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
+  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
+  scale_x_continuous(breaks = as.numeric(unique(dfgroups$age_groups)), labels = unique(dfgroups$age_groups)) + # <2>
+  labs(x = "Age group", y = "Proportion of respondents in category") +
+  scale_color_manual("Occupation:", values = c("Ag" = colors[1], "Educ." = colors[2])) +
+  theme_bw() +
+  theme(legend.position = c(0.9, 0.8))
+```
+
+
+
+
+## Finally, the points and lines together
+
+```{r}
+#| echo: false
+#| eval: true
+ggplot() +
+  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
+  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ag, color = "Ag")) +
+  geom_point(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
+  geom_line(data = dfgroups, aes(x = as.numeric(age_groups), y = ed, color = "Educ.")) +
+  scale_x_continuous(breaks = as.numeric(unique(dfgroups$age_groups)), labels = unique(dfgroups$age_groups)) + # <2>
+  labs(x = "Age group", y = "Proportion of respondents in category") +
+  scale_color_manual("Occupation:", values = c("Ag" = colors[1], "Educ." = colors[2])) +
+  theme_bw() +
+  theme(legend.position = c(0.9, 0.8))
+```
+
+
+
+
+
+
+
 
 
 ## Now it's your turn!
@@ -1593,8 +1773,34 @@ ggplot() +
 <br>
   
 - You need to create the following:
-  - A graph with only one variable (e.g. density)
+  - A graph with only one variable (e.g. density/histogram)
   - A graph with two variables (e.g. point or line)
+
+
+
+
+
+
+
+
+
+
+
+
+## Time dependent: Now it's your turn, part !
+
+- Use your own country data
+  - If you don't have any, group up!
+<br>
+  
+- Create two nice visualizations using your country data
+
+
+
+
+
+
+
 
 
 
