@@ -8,15 +8,7 @@
     - [Day 1 slides](https://joshmerfeld.github.io/nairobiworkshops/day1.html)
     - [Day 1 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day1.pdf)
     - [Day 1 data](day1data/data)
-  - Day 2:
-    - Day 2 slides
-    - Day 2 data
-  - Day 3:
-    - Day 3 slides
-    - Day 3 data
   - Day 4:
-    - Day 4 slides
-    - Day 4 data
-  - Day 5:
-    - Day 5 slides
-    - Day 5 data
+    - [Day 4 slides](https://joshmerfeld.github.io/nairobiworkshops/day4.html)
+    - [Day 4 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day4.pdf)
+    - [Day 4 data](day4data/data)
