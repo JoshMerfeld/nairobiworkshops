@@ -46,8 +46,8 @@ library(tidyverse)
 
 ::: {.column width="50%"}
 - Day 4:
-  - Day 4 slides
-  - Day 4 data
+  - [Day 4 slides](https://joshmerfeld.github.io/nairobiworkshops/day4.html)
+  - [Day 4 data](day4data/data)
 - Day 5:
   - Day 5 slides
   - Day 5 data
