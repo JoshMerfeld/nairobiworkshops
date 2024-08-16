@@ -35,6 +35,7 @@ library(cowplot)
 library(haven)
 library(terra)
 library(tidyterra)
+library(exactextractr)
 
 Sys.setenv("RETICULATE_PYTHON" = "~/Library/r-miniconda-arm64/envs/RGEEDIM/bin/python3.9")
 library(rgeedim)
@@ -620,7 +621,7 @@ ggplot() +
 ```{r}
 #| eval: false
 #| echo: true
-#| code-fold: true
+#| code-fold: show
 library(sf)
 # this is the shapefile for the northern region of Malawi, TA level
 northmw <- read_sf("day4data/mw3.shp")
@@ -631,7 +632,7 @@ ggplot() +
 ```{r}
 #| eval: false
 #| echo: true
-#| code-fold: true
+#| code-fold: show
 
 ggplot() +
   geom_sf(data = northmw, fill = NA, color = "black") +
@@ -758,7 +759,7 @@ gridexample
 - We just need to know:
   - The location of one cell
   - The size of each cell
-    - This is called the `resolution` of the raster<br><br>4
+    - This is called the `resolution` of the raster<br><br>
     
 - Example:
   - I know the first grid cell in bottom left is at (0, 0)
@@ -974,7 +975,7 @@ ggplot() +
 #| echo: true
 #| eval: false
 #| fig-align: center
-#| code-fold: true
+#| code-fold: show
 
 tif <- rast("day4data/mwpop.tif")
 
@@ -1326,6 +1327,49 @@ ggplot() +
 
 
 
+## GeoLink
+
+- I'm going to start with some example code for a package called `GeoLink`
+  - This package actually uses Microsoft Planetary Computer
+  - It is very very easy to use
+  - The problem: as of now, it only has a few datasets
+
+```{r}
+#| eval: false
+#| echo: true
+
+# we have to download it differently
+devtools::install_github("SSA-Statistical-Team-Projects/GeoLink")
+
+```
+
+
+
+## The actual code is much easier to use than GEE!
+
+```{r}
+#| eval: false
+#| echo: true
+
+library(GeoLink)
+library(sf)
+
+adm4 <- read_sf("mw4.shp")
+# CHIRPS is rainfall data
+adm4_chirps <- geolink_chirps(time_unit = "month",
+  start_date = "2019-01-01",
+  end_date = "2019-03-01",
+  shp_dt = adm4,
+  extract_fun = "mean")
+summary(adm4_chirps)
+
+```
+
+- Keep an eye on this package! It will be very useful when it has more datasets
+
+
+
+
 ## Google Earth Engine
 
 - First things first: you need an account!<br><br>
@@ -1373,6 +1417,20 @@ ggplot() +
   - Go ahead and install it using `install.packages("rgeedim")`
   - Load it using `library(rgeedim)`
     - Type `Yes` when asked to create a default Python environment
+
+
+
+
+
+## We need to download python... sorry!
+
+- The first time you use `rgeedim`, you will need to install python
+  - The easiest way is to search `download miniconda`
+  - One of the first links should be [https://docs.anaconda.com/miniconda/](https://docs.anaconda.com/miniconda/)
+  - Go down to "Latest Miniconda installer links" and select the correct link for your platform (e.g. Windows)
+  - Once it finishes downloading, please go do your downloads folder and double click to install<br><br>
+  
+- Let's take five minutes to download and install python
 
 
 
@@ -1661,6 +1719,191 @@ ggplot() +
 - We want to download NDVI data for Malawi
   - We want the `Terra Vegetation Indices 16-Day Global 500m` data (you can just search this)
   - Download the first observation from 2019
+  - Extract it to the mw4 shapefile!
+
+
+
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: show
+
+# load shapefile
+malawi <- read_sf("day4data/mw4.shp")
+# this creates the bounding box
+bbox <- st_bbox(malawi)
+
+x <- gd_collection_from_name("MODIS/061/MOD13A1") |>
+  gd_search(region = bbox)
+gd_properties(x)
+# the ID for the first image of 2019 is MODIS/061/MOD13A1/2019_01_01
+
+```
+
+
+
+## Let's download that id
+
+
+::: columns
+::: {.column width="55%"}
+
+```{r}
+#| eval: false
+#| echo: true
+
+x <- gd_image_from_id("MODIS/061/MOD13A1/2019_01_01") |>
+  gd_download(
+    filename = "temp.tif",
+    region = bbox, # region is our bbox
+    scale = 500, # resolution
+    crs = 'EPSG:4326', # lat/lon
+    overwrite = TRUE, # overwrite if it exists
+    bands = list("NDVI") # only download NDVI
+  )
+x <- rast(x) # load raster
+ndviextract <- exact_extract(x, malawi, fun = "mean", append_cols = "EA_CODE")
+malawi <- malawi |>
+  left_join(ndviextract |> rename(ndvi = mean), by = "EA_CODE")
+ggplot() +
+  geom_sf(data = malawi, aes(fill = ndvi), lwd = 0.01,) +
+  scale_fill_distiller("NDVI", 
+    palette = "Greens", direction = 1) +
+  theme_minimal()
+```
+
+```{r}
+#| eval: true
+#| echo: false
+#| include: false
+#| class-output: hscroll
+
+x <- gd_image_from_id("MODIS/061/MOD13A1/2019_01_01") |>
+  gd_download(
+    filename = "temp.tif",
+    region = bbox, # region is our bbox
+    scale = 500, # resolution
+    crs = 'EPSG:4326', # lat/lon
+    overwrite = TRUE, # overwrite if it exists
+    bands = list("NDVI") # only download NDVI
+  )
+x <- rast(x) # load raster
+ndviextract <- exact_extract(x, malawi, fun = "mean", append_cols = "EA_CODE")
+malawi <- malawi |>
+  left_join(ndviextract |> rename(ndvi = mean), by = "EA_CODE")
+ggplot() +
+  geom_sf(data = malawi,
+    aes(fill = ndvi),
+    lwd = 0.01,) +
+  scale_fill_distiller("NDVI", 
+    palette = "Greens", direction = 1) +
+  theme_minimal()
+```
+
+
+:::
+
+::: {.column width="45%"}
+
+![](day4assets/rgeedimndvi.png){fig-align="center" width="65%"}
+
+:::
+:::
+
+
+
+  
+
+
+
+
+
+
+
+## This returns a LOT of results - search by date!
+
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# load shapefile
+malawi <- read_sf("day4data/mw4.shp")
+# this creates the bounding box
+bbox <- st_bbox(malawi)
+
+# so let's filter by date!
+x <- gd_collection_from_name("MODIS/061/MOD13A1") |>
+  gd_search(region = bbox,
+    start_date = "2019-01-01",
+    end_date = "2019-12-31")
+gd_properties(x)
+
+```
+
+  
+
+
+
+
+
+
+
+## Let's look at the dates
+
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+gd_properties(x)$date
+
+```
+
+- What should we download?
+  - NDVI is a vegetation index, which means it varies quite a bit throughout the year
+  - We could take average NDVI throughout the year
+  - Or we could take NDVI at a specific time of year
+  - Or we could take the max... or the min... or all of the above!
+  
+- Let's download one raster PER MONTH
+  - How?
+  
+  
+  
+  
+  
+  
+## Let's look at the dates
+
+- There are `r length(gd_properties(x)$date)` dates
+- This code is a bit complicated, so let me explain
+
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+# get the dates
+dates <- gd_properties(x)$date
+# here are the months
+months <- month(dates)
+ids <- c() # this creates an empty vector
+for (m in 1:12){ # this "for loop" loops through each month (1 through 12)
+  ids <- c(ids, which(months == m)[1]) # it then takes the LOCATION of the FIRST VALUE equal to m
+}
+ids <- gd_properties(x)$id[ids] # this gets the image ids at those locations
+ids # 
+```
+
+
+
 
 
 
