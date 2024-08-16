@@ -1405,6 +1405,20 @@ summary(adm4_chirps)
 
 
 
+
+
+## We need to download python... sorry!
+
+- The first time you use `rgeedim`, you will need to install python
+  - The easiest way is to search `download miniconda`
+  - One of the first links should be [https://docs.anaconda.com/miniconda/](https://docs.anaconda.com/miniconda/)
+  - Go down to "Latest Miniconda installer links" and select the correct link for your platform (e.g. Windows)
+  - Once it finishes downloading, please go do your downloads folder and double click to install<br><br>
+  
+- Let's take five minutes to download and install python
+
+
+
 ## Downloading the data is... a pain
 
 - Actually getting the data is a bit of a pain
@@ -1417,20 +1431,6 @@ summary(adm4_chirps)
   - Go ahead and install it using `install.packages("rgeedim")`
   - Load it using `library(rgeedim)`
     - Type `Yes` when asked to create a default Python environment
-
-
-
-
-
-## We need to download python... sorry!
-
-- The first time you use `rgeedim`, you will need to install python
-  - The easiest way is to search `download miniconda`
-  - One of the first links should be [https://docs.anaconda.com/miniconda/](https://docs.anaconda.com/miniconda/)
-  - Go down to "Latest Miniconda installer links" and select the correct link for your platform (e.g. Windows)
-  - Once it finishes downloading, please go do your downloads folder and double click to install<br><br>
-  
-- Let's take five minutes to download and install python
 
 
 
