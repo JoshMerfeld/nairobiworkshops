@@ -149,8 +149,8 @@ admin2 <- read_sf("day4data/mw2.shp")
 admin3 <- read_sf("day4data/mw3.shp")
 admin3 <- st_transform(admin3, crs = st_crs(admin2))
 survey <- read_dta("day4data/householdgeovariables_ihs5.dta")
-survey$DIST_CODE <- substr(survey$ea_id, 1, 3)
-survey$TA_CODE <- substr(survey$ea_id, 1, 5)
+survey$DIST_CODE <- substr(survey$case_id, 1, 3)
+survey$TA_CODE <- substr(survey$case_id, 1, 5)
 
 temp <- survey |>
   group_by(DIST_CODE) |>
@@ -1899,8 +1899,318 @@ for (m in 1:12){ # this "for loop" loops through each month (1 through 12)
   ids <- c(ids, which(months == m)[1]) # it then takes the LOCATION of the FIRST VALUE equal to m
 }
 ids <- gd_properties(x)$id[ids] # this gets the image ids at those locations
-ids # 
+ids # Now we have all the ids we want to download!
 ```
+
+
+
+
+## Here's how I would do this
+
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+adminareas <- malawi |>
+  as_tibble() |>
+  select(EA_CODE)
+
+for (i in 1:length(ids)){
+  x <- gd_image_from_id(ids[i]) |>
+  gd_download(
+    filename = "temp.tif",
+    region = bbox, # region is our bbox
+    scale = 500, # resolution
+    crs = 'EPSG:4326', # lat/lon
+    overwrite = TRUE, # overwrite if it exists
+    bands = list("NDVI") # only download NDVI
+  )
+  x <- rast(x) # load raster
+  ndviextract <- exact_extract(x, malawi, fun = "mean", append_cols = "EA_CODE")
+  colnames(ndviextract) <- c("EA_CODE", paste0("NDVI_", i))
+  adminareas <- adminareas |>
+    left_join(ndviextract, by = "EA_CODE")
+}
+
+```
+
+
+
+
+
+## But that's difficult, so I've uploaded the data!
+
+- That's a hard thing to wrap your head around if you're new to R
+  - If you want to download them, you can just do them one at a
+  - I've uploaded the data:
+    - `day4data/ndviallmonths.csv`
+    - Go ahead and load it and take a look at it
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: true
+#| class-output: hscroll
+
+ndviall <- read_csv("day4data/ndviallmonths.csv")
+ndviall
+
+```
+
+
+
+
+
+## Let's create some new variables
+
+- Let's create three new NDVI variables:
+  - Annual minimum
+  - Annual maximum
+  - Annual average
+- New `R` function: apply!
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# create new variable called min. the "1" means across ROWS.
+ndviall$ndvimin <- apply(ndviall |> select(starts_with("NDVI")), 1, min, na.rm = TRUE)
+# max
+ndviall$ndvimax <- apply(ndviall |> select(starts_with("NDVI")), 1, max, na.rm = TRUE)
+# mean
+ndviall$ndvimean <- apply(ndviall |> select(starts_with("NDVI")), 1, mean, na.rm = TRUE)
+# just keep those
+ndviall <- ndviall |>
+  select(EA_CODE, ndvimin, ndvimax, ndvimean)
+
+```
+
+
+
+
+
+
+
+## One last step
+
+- We need to get the codes for the survey data!
+- I've uploaded the survey data for Malawi
+  - `day4data/ihs5_consumption_aggregate.dta`
+  - Go ahead and load it (remember to use `haven`)
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: true
+library(haven)
+ihs5 <- read_dta("day4data/ihs5_consumption_aggregate.dta")
+head(ihs5)
+```
+
+
+
+
+
+
+
+
+
+## One last step
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+head(ihs5)
+```
+
+- Note that in this case, we already have the ea codes in the survey data
+  - So we can just join the two datasets!
+
+
+
+
+
+
+
+
+
+## Collapse to EA_CODE
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+library(stats) # this is for weighted.mean
+ihs5ea <- ihs5 |>
+  rename(EA_CODE = ea_id) |>
+  group_by(EA_CODE) |>
+  # Note that this is a weighted mean!
+  summarize(poor = stats::weighted.mean(x = poor, w = hh_wgt*adulteq, na.rm = TRUE), # weighted mean
+    total_weights = sum(hh_wgt*adulteq, na.rm = TRUE), # sum total weights
+    total_obs = n()) # total observations (households) in the EA
+head(ihs5ea)
+```
+
+
+
+
+
+
+
+
+
+## But what if you don't have an identifier?
+
+- Sometimes you have GPS coordinates but not matching identifiers
+  - Good news! We can use geospatial tools to match the coordinates to the shapefile
+  
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+ihs5coords <- read_dta("day4data/householdgeovariables_ihs5.dta")
+# turn it into an sf object
+ihs5coords <- ihs5coords |>
+  filter(!is.na(ea_lon_mod)) |> # get rid of any missing values (can't use them)
+  st_as_sf(coords = c("ea_lon_mod", "ea_lat_mod"), crs = 4326)
+head(ihs5coords)
+```
+
+
+
+
+
+
+
+
+
+## Here's how it looks
+
+
+::: columns
+::: {.column width="65%"}
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: show
+ihs5coords <- read_dta("day4data/householdgeovariables_ihs5.dta")
+# turn it into an sf object
+ihs5coords <- ihs5coords |>
+  filter(!is.na(ea_lon_mod)) |> # get rid of any missing values (can't use them)
+  st_as_sf(coords = c("ea_lon_mod", "ea_lat_mod"), crs = 4326)
+admin4 <- read_sf("day4data/mw4.shp")
+ggplot() + 
+  geom_sf(data = admin4, color = "transparent", lwd = 0.01) +
+  geom_sf(data = ihs5coords, color = "red") +
+  theme_minimal()
+```
+
+:::
+
+::: {.column width="35%"}
+
+![](day4assets/ihs5coords.png){fig-align="center" width="65%}
+
+:::
+:::
+
+
+
+
+
+
+
+
+
+
+## We can join them using `st_join`
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+ihs5coords <- read_dta("day4data/householdgeovariables_ihs5.dta")
+# turn it into an sf object
+ihs5coords <- ihs5coords |>
+  filter(!is.na(ea_lon_mod)) |> # get rid of any missing values (can't use them)
+  st_as_sf(coords = c("ea_lon_mod", "ea_lat_mod"), crs = 4326)
+admin4 <- read_sf("day4data/mw4.shp")
+ihs5coords <- st_join(ihs5coords, admin4)
+# and that's it!
+head(ihs5coords)
+```
+
+
+
+
+
+
+## One last set of data: MOSAIKS
+
+## One last set of data: MOSAIKS {background-image="day4assets/mosaikbackground.png"}
+
+
+
+
+
+## One last set of data: MOSAIKS
+
+- MOSAIKS is a dataset that has a lot of different variables
+  - These variables were constructed by the authors from satellite imagery
+  - You can download all of these features using their website
+  - [https://api.mosaiks.org](https://api.mosaiks.org) - you'll have to register
+  - The data is quite large, so I've downloaded and uploaded it for you
+    - It's a random selection of 500 variables for EAs in Norther Malawi
+    - `day4data/mosaikvars.csv`
+    - Note that I used `st_join` to match it to the shapefile!
+
+[Rolf et al. (2021)](https://www.nature.com/articles/s41467-021-24638-z)
+
+
+
+
+
+
+
+
+
+
+# Putting it all together
+
+
+
+## What have we downloaded?
+
+- We have:
+  - Population data from WorldPop
+  - Nightlights data from GEE
+  - NDVI data from GEE
+  - MOSAIKS data
+  - Survey data from Malawi<br><br>
+  
+- We have everything we need to estimate a simple SAE model using geospatial data!
+  - Note: in practice, I would use even more predictors, but this is a good start
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
