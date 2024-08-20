@@ -1108,6 +1108,8 @@ adm4 <- st_transform(adm4, crs = crs(tif))
 # extract the raster values to the shapefile
 # we are going to SUM, and add the EA_CODE from the shapefile to the result
 extracted <- exact_extract(tif, adm4, fun = "sum", append_cols = "EA_CODE")
+# save it!
+write_csv(extracted |> rename(pop = sum), "day4data/mwpopEAs.csv")
 ```
 
 ```{r}
@@ -1707,6 +1709,36 @@ ggplot() +
 
 
   
+  
+  
+  
+
+
+
+  
+
+
+
+
+
+
+
+## We want to extract NTL to the shapefile
+
+
+```{r}
+#| eval: false
+#| echo: true
+adm4 <- read_sf("day4data/mw4.shp")
+# exact_extract
+library(exactextractr)
+ntlextract <- exact_extract(x, adm4, fun = "mean", append_cols = "EA_CODE")
+head(ntlextract)
+# save it!
+write_csv(ntlextract |> rename(ntl = mean), "day4data/mwntlEAs.csv")
+
+```
+
 
 
 
@@ -1987,6 +2019,8 @@ ndviall$ndvimean <- apply(ndviall |> select(starts_with("NDVI")), 1, mean, na.rm
 # just keep those
 ndviall <- ndviall |>
   select(EA_CODE, ndvimin, ndvimax, ndvimean)
+# save it!
+write_csv(ndviall, "day4data/ndviclean.csv")
 
 ```
 
@@ -2152,9 +2186,44 @@ head(ihs5coords)
 
 
 
-## One last set of data: MOSAIKS
 
-## One last set of data: MOSAIKS {background-image="day4assets/mosaikbackground.png"}
+
+
+## Now we need to add the EA_CODE to the poverty data
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+ihs5 <- read_dta("day4data/ihs5_consumption_aggregate.dta")
+ihs5 <- ihs5 |>
+  left_join(ihs5coords, by = "case_id")
+# collapse to EA_CODE
+ihs5ea <- ihs5 |>
+  group_by(EA_CODE) |>
+  # Note that this is a weighted mean!
+  summarize(poor = stats::weighted.mean(x = poor, w = hh_wgt*adulteq, na.rm = TRUE), # weighted mean
+    total_weights = sum(hh_wgt*adulteq, na.rm = TRUE), # sum total weights
+    total_obs = n()) # total observations (households) in the EA
+head(ihs5ea)
+# save it!
+write_csv(ihs5ea, "day4data/ihs5ea.csv")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+# One last set of data: MOSAIKS
+
+## {background-image="day4assets/mosaikbackground.png"}
 
 
 
@@ -2172,8 +2241,6 @@ head(ihs5coords)
     - Note that I used `st_join` to match it to the shapefile!
 
 [Rolf et al. (2021)](https://www.nature.com/articles/s41467-021-24638-z)
-
-
 
 
 
@@ -2200,6 +2267,80 @@ head(ihs5coords)
 
 
 
+## First, let's load all the data
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+
+# Population 
+pop <- read_csv("day4data/mwpopEAs.csv")
+# Nightlights
+ntl <- read_csv("day4data/mwntlEAs.csv")
+# NDVI
+ndvi <- read_csv("day4data/ndviclean.csv")
+# mosaiks
+mosaik <- read_csv("day4data/mosaikvars.csv")
+# survey data
+ihs5ea <- read_csv("day4data/ihs5ea.csv")
+# all EAs
+adm4 <- read_sf("day4data/mw4.shp")
+# no geometry, just EA_CODE
+adm4 <- as_tibble(adm4) |>
+  dplyr::select(EA_CODE, TA_CODE)
+
+```
+
+
+
+
+
+## Now, we join it all!
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: show
+
+adm4 <- adm4 |>
+  left_join(ihs5ea, by = "EA_CODE") |> # add survey data
+  left_join(pop, by = "EA_CODE") |> # add pop
+  left_join(ntl, by = "EA_CODE") |> # add nightlights
+  left_join(ndvi, by = "EA_CODE") |> # add ndvi
+  left_join(mosaik, by = "EA_CODE") |> # add mosaik
+  
+head(adm4)
+
+```
+- Oh no! This throws an error!
+  - `x$EA_CODE` is a `<character>`
+  - `y$EA_CODE` is a `<double>`
+  - What's going on?
+
+
+
+
+
+## Now, we join it all!
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+adm4 <- adm4 |>
+  mutate(EA_CODE = as.numeric(EA_CODE)) |>
+  left_join(ihs5ea |> mutate(EA_CODE = as.numeric(EA_CODE)), by = "EA_CODE") |> # add survey data
+  left_join(pop |> mutate(EA_CODE = as.numeric(EA_CODE)), by = "EA_CODE") |> # add pop
+  left_join(ntl |> mutate(EA_CODE = as.numeric(EA_CODE)), by = "EA_CODE") |> # add nightlights
+  left_join(ndvi |> mutate(EA_CODE = as.numeric(EA_CODE)), by = "EA_CODE") |> # add ndvi
+  left_join(mosaik |> mutate(EA_CODE = as.numeric(EA_CODE)), by = "EA_CODE") # add mosaik
+  
+head(adm4)
+
+```
 
 
 
@@ -2208,6 +2349,324 @@ head(ihs5coords)
 
 
 
+## What do poverty rates look like?
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+
+# levels vs. arcsin squareroot transformation
+ggplot() +
+  geom_density(data = adm4, aes(x = poor), fill = "navy", alpha = 0.5) +
+  geom_density(data = adm4, aes(x = asin(sqrt(poor))), fill = "orange", alpha = 0.5) +
+  theme_minimal()
+# Not perfect but neither is horribly non-normal!
+
+```
+
+
+
+
+
+
+
+
+
+
+## Before SAE, need to do some cleaning
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# check for missings
+sum(is.na(adm4$pop))
+sum(is.na(adm4$ntl))
+sum(is.na(adm4$ndvimin))
+sum(is.na(adm4$mosaik1))
+# we have missings for the mosaik features!
+
+
+```
+
+
+
+
+
+
+
+
+
+## Missing mosaiks, what to do?
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# I am going to replace missing mosaiks values with the TA mean
+adm4 <- adm4 |>
+  group_by(TA_CODE) |>
+  mutate(across(starts_with("mosaik"), ~replace_na(., mean(., na.rm = TRUE)))) |>
+  ungroup()
+
+sum(is.na(adm4$mosaik1)) # fixed!
+```
+
+
+
+
+
+
+
+
+
+## Now let's select features
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+library(glmnet)
+
+# let's also log population!
+adm4 <- adm4 |>
+  mutate(pop = log(pop))
+
+surveyeas <- adm4 |>
+  filter(!is.na(poor))
+samplefeatures <- surveyeas |>
+  select(-c(EA_CODE, TA_CODE, poor, total_weights, total_obs)) # remove these variables
+samplelabels <- surveyeas$poor
+sampleweights <- surveyeas$total_weights
+
+# now lasso
+set.seed(24826)
+lasso <- cv.glmnet(x = as.matrix(samplefeatures), y = samplelabels, 
+  weights = sampleweights,
+  alpha = 1)
+
+```
+
+
+
+
+
+
+
+
+
+## What did lasso do?
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+coef(lasso, s = "lambda.min")
+
+```
+
+
+
+
+
+
+
+
+
+## We want to get the non-zero variables
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+coefs <- coef(lasso, s = "lambda.min")
+nonzerocoefs <- row.names(coefs)[which(coefs!=0)]
+nonzerocoefs
+# but we don't want the intercept here (you'll see why)
+nonzerocoefs <- nonzerocoefs[-1]
+nonzerocoefs
+```
+
+
+
+
+
+
+
+
+## Now we want to turn that into a formula!
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+formula <- as.formula(paste("poor ~", paste(nonzerocoefs, collapse = " + ")))
+formula
+# you can see it works with a simple linear regression!
+lm(formula, data = surveyeas)
+```
+
+
+
+
+
+
+
+
+
+## Finally, we can do SAE
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+library(povmap)
+
+saeresults <- povmap::ebp(fixed = formula, # the formula
+  pop_data = adm4,
+  pop_domains = "TA_CODE",
+  smp_data = surveyeas,
+  smp_domains = "TA_CODE",
+  transformation = "arcsin",
+  weights = "total_weights",
+  pop_weights = "pop",
+  weights_type = "nlme",
+  MSE = TRUE,
+  rescale_weights = TRUE,
+  seed = 1234,
+  L = 0)
+
+```
+
+
+
+
+
+
+
+
+## The results
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# What is R2?
+summary(saeresults)$coeff_determ
+
+```
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# Relatively normal?
+summary(saeresults)$normality
+
+```
+
+
+
+
+
+
+
+## Now let's get the predictions
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# get the predictions
+hat <- as_tibble(saeresults$ind)
+hat <- hat |>
+  select(TA_CODE = Domain, poor = Mean)
+# We also want variance estimates
+mse <- as_tibble(saeresults$MSE) |>
+  select(TA_CODE = Domain, mse = Mean)
+# note to get the standard error we have to take the square root!
+mse <- mse |>
+  mutate(se = sqrt(mse))
+
+# finally, join them!
+final <- left_join(hat, mse, by = "TA_CODE")
+
+head(final)
+```
+
+
+
+
+
+
+
+## Let's map it!
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: show
+#| class-output: hscroll
+
+# Admin3 (TA)
+adm3 <- read_sf("day4data/mw3.shp")
+adm3 <- adm3 |>
+  left_join(final, by = "TA_CODE")
+
+# let's output two things: poverty rate and CV (se/mean)
+g1 <- ggplot() +
+  geom_sf(data = adm3, aes(fill = poor), color = "white") +
+  scale_fill_distiller("Poverty Rate", palette = "Spectral", direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+g2 <- ggplot() +
+  geom_sf(data = adm3, aes(fill = se/poor), color = "white") +
+  scale_fill_distiller("CV", palette = "Spectral", direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+g3 <- ggplot() +
+  geom_sf(data = adm3, aes(fill = as.factor((se/poor)<=0.4)), color = "white") +
+  scale_fill_brewer("CV below 0.4?", palette = "Reds", direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+
+
+
+
+## The final result!
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: true
+#| fig-width: 17
+library(cowplot)
+
+plot_grid(g1, g2, g3, ncol = 3)
+```
 
 
 
