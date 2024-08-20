@@ -2673,6 +2673,37 @@ plot_grid(g1, g2, g3, ncol = 3)
 
 
 
+## And here it is with Rumphi
+
+```{r}
+#| eval: true
+#| echo: true
+#| code-fold: true
+#| fig-width: 17
+
+rumphibbox <- st_bbox(adm3 |> filter(DIST_CODE=="107"))
+g2new <- ggdraw() +
+  draw_plot(
+    {
+      g1 +
+        coord_sf(
+          xlim = c(rumphibbox[1], rumphibbox[3]),
+          ylim = c(rumphibbox[2], rumphibbox[4]),
+          expand = FALSE) +
+        labs(subtitle = "Rumphi only")
+    }
+  )
+g1new <- g1 + 
+  labs(subtitle = "Northern Malawi") +
+  geom_sf(data = st_as_sf(st_as_sfc(rumphibbox)), fill = NA, color = "black")
+plot_grid(g1new, g2new, ncol = 2)
+```
+
+
+
+
+
+
 
 
 
