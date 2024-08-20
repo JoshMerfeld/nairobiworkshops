@@ -2697,6 +2697,7 @@ g1new <- g1 +
   labs(subtitle = "Northern Malawi") +
   geom_sf(data = st_as_sf(st_as_sfc(rumphibbox)), fill = NA, color = "black")
 plot_grid(g1new, g2new, ncol = 2)
+
 ```
 
 
