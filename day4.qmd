@@ -1,6 +1,6 @@
 ---
 title: "SAE using geospatial data"
-subtitle: "Nairobi Workshop: Day 4 (geospatial data)"
+subtitle: "Nairobi Workshop: Day 4"
 author: 
   - name: Ann-Kristin Kreutzmann
   - name: Josh Merfeld
@@ -705,7 +705,7 @@ ggplot() +
 main <- ggplot() +
   geom_hline(yintercept = 1:10, color = "black") +
   geom_vline(xintercept = 1:10, color = "black") +
-  theme_minimal() +
+  theme_bw() +
   labs(x = "X", y = "Y") +
   scale_x_continuous(breaks = 1:10, minor_breaks = NULL) +
   scale_y_continuous(breaks = 1:10, minor_breaks = NULL)
@@ -785,7 +785,7 @@ tif <- rast("day4data/beninpop.tif")
 ggplot() +
   geom_spatraster(data = tif, ) + 
   scale_fill_distiller("Population\ncount", palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Cotonou, Benin")
 
 ```
@@ -917,7 +917,7 @@ ggplot() +
   # I like spectral a lot
   scale_fill_distiller("Population\ncount", 
     palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Cotonou, Benin")
 ```
 
@@ -934,7 +934,7 @@ library(tidyterra)
 ggplot() +
   geom_spatraster(data = cotonou) + 
   scale_fill_distiller("Population\ncount", palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Cotonou, Benin")
 
 ```
@@ -983,7 +983,7 @@ ggplot() +
   geom_spatraster(data = tif) + 
   scale_fill_distiller("Population\ncount", 
     palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Northern Malawi")
 ```
 
@@ -1023,7 +1023,7 @@ ggplot() +
   geom_spatraster(data = log(tif)) + 
   scale_fill_distiller("Population\ncount (log)", 
     palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Northern Malawi")
 ```
 
@@ -1056,11 +1056,11 @@ g1 <- ggplot() +
   geom_spatraster(data = tif) + 
   scale_fill_distiller("Population\ncount (log)", 
     palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in Northern Malawi")
 g2 <- ggplot() +
   geom_sf(data = adm4, color = "black", fill = "transparent", lwd = 0.1) + 
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "EAs (admin4) Northern Malawi")
 
 plot_grid(g1, NA, g2, ncol = 3, rel_widths = c(1, 0.05, 1))
@@ -1150,7 +1150,7 @@ ggplot() +
     color = "black", lwd = 0.01) +
   scale_fill_distiller("Population\ncount", 
     palette = "Spectral", na.value = "white") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Population in EAs")
 
 ```
@@ -1691,7 +1691,7 @@ ggplot() +
     lwd = 0.01,
     alpha = 0.5,
     fill = "transparent") +
-  theme_minimal() +
+  theme_bw() +
   labs(subtitle = "Nightlights in Malawi")
 ```
 
@@ -1802,7 +1802,7 @@ ggplot() +
   geom_sf(data = malawi, aes(fill = ndvi), lwd = 0.01,) +
   scale_fill_distiller("NDVI", 
     palette = "Greens", direction = 1) +
-  theme_minimal()
+  theme_bw()
 ```
 
 ```{r}
@@ -1830,7 +1830,7 @@ ggplot() +
     lwd = 0.01,) +
   scale_fill_distiller("NDVI", 
     palette = "Greens", direction = 1) +
-  theme_minimal()
+  theme_bw()
 ```
 
 
@@ -2143,7 +2143,7 @@ admin4 <- read_sf("day4data/mw4.shp")
 ggplot() + 
   geom_sf(data = admin4, color = "transparent", lwd = 0.01) +
   geom_sf(data = ihs5coords, color = "red") +
-  theme_minimal()
+  theme_bw()
 ```
 
 :::
@@ -2360,7 +2360,7 @@ head(adm4)
 ggplot() +
   geom_density(data = adm4, aes(x = poor), fill = "navy", alpha = 0.5) +
   geom_density(data = adm4, aes(x = asin(sqrt(poor))), fill = "orange", alpha = 0.5) +
-  theme_minimal()
+  theme_bw()
 # Not perfect but neither is horribly non-normal!
 
 ```
@@ -2636,17 +2636,17 @@ adm3 <- adm3 |>
 g1 <- ggplot() +
   geom_sf(data = adm3, aes(fill = poor), color = "white") +
   scale_fill_distiller("Poverty Rate", palette = "Spectral", direction = -1) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = "bottom")
 g2 <- ggplot() +
   geom_sf(data = adm3, aes(fill = se/poor), color = "white") +
   scale_fill_distiller("CV", palette = "Spectral", direction = -1) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = "bottom")
 g3 <- ggplot() +
   geom_sf(data = adm3, aes(fill = as.factor((se/poor)<=0.4)), color = "white") +
   scale_fill_brewer("CV below 0.4?", palette = "Reds", direction = -1) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = "bottom")
 
 ```
