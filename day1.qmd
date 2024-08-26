@@ -856,6 +856,31 @@ summary(dfhh) # note the NAs for prop_children_male! Why is it missing?
 
 
 
+
+
+
+
+
+
+
+## Time dependent: Now it's your turn, part II!
+
+- Use your own country data
+  - If you don't have any, use the data I have uploaded!
+<br>
+  
+- Choose some variables and aggregate them to whatever level you want
+  - Raise your hand if you have questions
+
+
+
+
+
+
+
+
+
+
 # Visualization with `ggplot2`
 
 
@@ -1787,10 +1812,10 @@ ggplot() +
 
 
 
-## Time dependent: Now it's your turn, part !
+## Time dependent: Now it's your turn, part II!
 
 - Use your own country data
-  - If you don't have any, group up!
+  - If you don't have any, use the data I have uploaded!
 <br>
   
 - Create two nice visualizations using your country data
