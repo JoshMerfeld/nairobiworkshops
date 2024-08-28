@@ -534,13 +534,13 @@ ebpformula
 #| include: true
 library(povmap) # I like to use povmap instead of emdi (personal preference)
 # get "area" variable
-data$TA_CODE <- substr(data$EA_CODE, 1, 5)
+predictors$TA_CODE <- substr(predictors$EA_CODE, 1, 5)
 data$TA_CODE <- substr(data$EA_CODE, 1, 5)
 ebp <- ebp(fixed = ebpformula, # the formula
   pop_data = predictors, # the population data
-  pop_domains = "EA_CODE", # the domain (area) name in the population data
+  pop_domains = "TA_CODE", # the domain (area) name in the population data
   smp_data = data, # the sample data
-  smp_domains = "EA_CODE", # the domain (area) name in the sample data
+  smp_domains = "TA_CODE", # the domain (area) name in the sample data
   transformation = "arcsin", # I'm going to use the arcsin transformation
   weights = "total_weights", # sample weights
   weights_type = "nlme", # weights type
@@ -551,6 +551,63 @@ head(ebp$ind)
 
 
 
+
+
+
+
+
+
+
+
+## Some results
+
+```{r}
+#| echo: true
+#| include: true
+#| class-output: hscroll
+
+plot(ebp)
+```
+
+
+
+
+
+
+
+
+
+
+
+## Some results
+
+```{r}
+#| echo: true
+#| include: true
+#| class-output: hscroll
+
+summary(ebp)
+```
+
+
+
+
+
+
+
+
+
+
+
+## Some results
+
+```{r}
+#| echo: true
+#| include: true
+#| class-output: hscroll
+
+estimators(ebp, "Mean", MSE = TRUE, CV = TRUE)
+```
 
 
 
