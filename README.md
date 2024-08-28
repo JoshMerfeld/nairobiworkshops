@@ -9,9 +9,9 @@
     - [Day 1 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day1.pdf)
     - [Day 1 data](day1data/data)
   - Day 3 (afternoon only):
-    - Day 3 slides
-    - Day 3 slides in pdf
-    - Day 3 data
+    - [Day 3 slides](https://joshmerfeld.github.io/nairobiworkshops/day3.html)
+    - [Day 3 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day3.pdf)
+    - [Day 3 data](day3data/data)
   - Day 4:
     - [Day 4 slides](https://joshmerfeld.github.io/nairobiworkshops/day4.html)
     - [Day 4 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day4.pdf)
