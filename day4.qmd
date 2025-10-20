@@ -2,8 +2,10 @@
 title: "SAE using geospatial data"
 subtitle: "Nairobi Workshop: Day 4"
 author: 
-  - name: Ann-Kristin Kreutzmann
   - name: Josh Merfeld
+    affiliation: University of Queensland
+  - name: David Newhouse
+    affiliation: World Bank
 date: "26 August 2024"
 date-format: long
 format: 
@@ -11,7 +13,7 @@ format:
     self-contained: true
     slide-number: false
     progress: false
-    theme: [serif, custom.scss]
+    theme: custom.scss
     width: 1500
     code-copy: true
     code-fold: show
