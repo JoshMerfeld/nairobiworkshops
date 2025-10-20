@@ -8,11 +8,7 @@
     - [Day 1 slides](https://joshmerfeld.github.io/nairobiworkshops/day1.html)
     - [Day 1 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day1.pdf)
     - [Day 1 data](day1data/data)
-  - Day 3 (afternoon only):
-    - [Day 3 slides](https://joshmerfeld.github.io/nairobiworkshops/day3.html)
-    - [Day 3 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day3.pdf)
-    - [Day 3 data](day3data/data)
-  - Day 4:
-    - [Day 4 slides](https://joshmerfeld.github.io/nairobiworkshops/day4.html)
-    - [Day 4 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day4.pdf)
-    - [Day 4 data](day4data/data)
+  - Day1/2 (vector files):
+    - [Day 2 slides](https://joshmerfeld.github.io/nairobiworkshops/day2.html)
+    - [Day 2 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day2.pdf)
+    - [Day 2 data](day2data/data)
