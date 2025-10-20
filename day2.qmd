@@ -1,0 +1,1656 @@
+---
+title: "Geospatial data: Vector files"
+subtitle: "Nairobi Workshop: Day 1 and 2"
+author: 
+  - name: Josh Merfeld
+    affiliation: University of Queensland
+  - name: David Newhouse
+    affiliation: World Bank
+date: "20 October 2025"
+
+format: 
+  revealjs:
+    self-contained: true
+    slide-number: false
+    progress: false
+    theme: custom.scss
+    width: 1500
+    height: 1500*(9/16)
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    highlight-style: github
+execute:
+  echo: true
+  warnings: false
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+knitr::knit_hooks$set(crop = knitr::hook_pdfcrop)
+
+library(tidyverse)
+library(sf)
+library(terra)
+library(cowplot)
+library(kableExtra)
+
+kdisgreen <- "#51247a"
+accent <- "#962a8b"
+accent2 <- "#2ea836"
+kdisgray <- "#4085c6"
+
+```
+
+
+
+## Introduction to geospatial data
+
+-   [One estimate](https://www.ibm.com/topics/geospatial-data) says that 100 TB of only weather data are generated every single day
+    -   This means there is a lot of data to work with!
+    -   Note that this is also problematic, since it can be difficult to work with such large datasets
+-   Geospatial data is used in a variety of fields
+    -   Agriculture
+    -   Urban planning
+    -   Environmental science
+    -   Public health
+    -   Transportation
+    -   And many more!
+
+## The amount of geospatial data is useful for many applications!
+
+-   Geospatial data can be highly predictive of e.g. poverty
+    -   Urbanity
+    -   Land class/cover
+    -   Vegetation indices
+    -   Population counts
+    -   etc. etc.
+-   More importantly: it's available everywhere!
+
+
+
+
+# Getting started with <br>geospatial data {#color-slide background-image="day2assets/titlebackground.jpg"}
+
+```{css, echo=FALSE}
+#color-slide, 
+#color-slide h1 {
+ color: white;
+ text-align: left;
+}
+```
+
+  
+  
+  
+## Getting started with geospatial data
+
+- What are we doing today?
+  - Shapefiles
+    - Polygons
+    - Points
+    - Lines
+    - Mapping with the package `sf`
+  - Coordinate reference systems
+    - Latitude/longitude
+    - Projections
+
+
+  
+  
+  
+## Shapefiles
+
+
+- Shapefiles are a common format for geospatial data
+  - They are a form of `vector` data
+
+- Shapefiles are made up of _at least_ three files:
+  - `.shp` - the shape itself
+  - `.shx` - the index
+  - `.dbf` - the attributes
+  - `.prj` - the projection
+    - This one is not technically necessary! But it's common to have.
+  - What these all mean isn't important for now, just make sure they are there! Check the `day2files` folder on github.
+
+
+  
+  
+  
+## Let's look at Northern Malawi
+
+::: columns
+::: {.column width="50%"}
+
+- Collection of `features`
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 4
+
+admin2 <- read_sf("day2files/mw2.shp")
+
+ggplot() + 
+  geom_sf(data = admin2, fill = "white", color = kdisgray) +
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "Districts in Northern Malawi") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+:::
+
+::: {.column width="50%"}
+
+- One `feature`
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 6
+
+ggplot() + 
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "Mzuzu City") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+:::
+:::
+
+
+
+
+  
+  
+  
+## Types of features
+
+
+- `Polygons`
+  - Areas
+  - Districts, countries, etc.
+- `Lines`
+  - Lines
+  - Roads, rivers, etc.
+- `Points`
+  - Points
+  
+  
+  
+## Let's start with polygons
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 10
+
+admin2 <- read_sf("day2files/mw2.shp")
+vertices <- spatialEco::extract.vertices(admin2 |> filter(DIST_CODE=="107"))
+
+g1 <- ggplot() + 
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "Mzuzu City") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot() + 
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  geom_sf(data = vertices, color = accent, size = 0.5) +
+  theme_bw() +
+  labs(subtitle = "Mzuzu City - 489 vertices!") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+plot_grid(g1, g2, ncol = 2) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+  
+  
+  
+## Imagine a rectangle, on a coordinate plane
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+
+square <- data.frame(
+  x = c(1, 1, 3, 3),
+  y = c(1, 3, 3, 1)
+)
+
+ggplot() +
+  geom_point(data = square, aes(x = x, y = y), color = NA) +
+  scale_x_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  scale_y_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  theme_bw() +
+  # add text
+  annotate("text", x = 2, y = 2, label = "How many points do we need\nto create a rectangle on this\ncoordinate plane?") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+
+```
+
+
+  
+  
+  
+## Imagine a rectangle, on a coordinate plane
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+
+square <- data.frame(
+  x = c(1, 1, 3, 3),
+  y = c(1, 3, 3, 1)
+)
+
+ggplot() +
+  geom_point(data = square, aes(x = x, y = y), color = kdisgreen) +
+  scale_x_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  scale_y_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  theme_bw() +
+  # add text
+  annotate("text", x = 2, y = 2, label = "Four points!") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+
+```
+
+
+  
+  
+  
+## Imagine a rectangle, on a coordinate plane
+
+::: columns
+::: {.column width="50%"}
+
+- We need four points.
+- But polygons in shapefiles are a little different.
+  - We have to "close" the feature so it knows it's a polygon!
+- We do this by adding a fifth point: the same as the first point!
+
+
+```{=html}
+<table style="width:100%">
+  <caption><span data-qmd="Five points (vertices) in our feature"></span></caption>
+  <thead>
+    <tr style="border-top:1px solid black">
+      <th><span data-qmd=" "></span></th>
+      <th><span data-qmd="X value"></span></th>
+      <th><span data-qmd="Y value"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Point 1</td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+    </tr>
+    <tr>
+      <td>Point 2</td>
+      <td style='text-align:center; vertical-align:middle'> 3 </td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+    </tr>
+    <tr>
+      <td>Point 3</td>
+      <td style='text-align:center; vertical-align:middle'> 3 </td>
+      <td style='text-align:center; vertical-align:middle'> 3 </td>
+    </tr>
+    <tr>
+      <td>Point 4</td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+      <td style='text-align:center; vertical-align:middle'> 3 </td>
+    </tr>
+    <tr>
+      <td>Point 5</td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+
+square <- data.frame(
+  x = c(1, 1, 3, 3),
+  y = c(1, 3, 3, 1)
+)
+
+ggplot() +
+  geom_point(data = square, aes(x = x, y = y), color = kdisgreen) +
+  scale_x_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  scale_y_continuous(breaks = c(0, 1, 2, 3, 4), minor_breaks = NULL, limits = c(0, 4)) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+
+```
+
+:::
+:::
+
+
+
+
+
+## All features are made of vertices
+
+::: columns
+::: {.column width="50%"}
+
+- So we have all our vertices (489 of them!)
+- The question:
+  - What is the coordinate system here?
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-align: center
+#| fig-width: 6
+
+admin2 <- read_sf("day2files/mw2.shp")
+vertices <- spatialEco::extract.vertices(admin2 |> filter(DIST_CODE=="107"))
+
+ggplot() + 
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  geom_sf(data = vertices, color = accent, size = 0.5) +
+  theme_bw() +
+  labs(subtitle = "Mzuzu City - 489 vertices!") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+:::
+:::
+
+
+
+
+
+## All features are made of vertices
+
+::: columns
+::: {.column width="50%"}
+
+- So we have all our vertices (489 of them!)
+- The question:
+  - What is the coordinate system here?
+  
+- We will return to this in a bit!
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-align: center
+#| fig-width: 6
+
+admin2 <- read_sf("day2files/mw2.shp")
+vertices <- spatialEco::extract.vertices(admin2 |> filter(DIST_CODE=="107"))
+
+ggplot() + 
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), fill = "white", color = kdisgreen) +
+  geom_sf(data = vertices, color = accent, size = 0.5) +
+  theme_bw() +
+  labs(subtitle = "Mzuzu City - 489 vertices!") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+:::
+:::
+
+
+
+
+
+
+
+## One more example of polygons
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-align: center
+#| fig-width: 5
+
+nyc <- read_sf("day2files/bldg_footprints.shp")
+
+ggplot() + 
+  geom_sf(data = nyc, fill = "white", color = kdisgreen) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+
+
+:::
+:::
+
+
+
+
+
+
+
+## One more example of polygons
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-align: center
+#| fig-width: 5
+
+nyc <- read_sf("day2files/bldg_footprints.shp")
+
+ggplot() + 
+  geom_sf(data = nyc, fill = "white", color = kdisgreen) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-align: center
+#| fig-width: 5
+
+
+ggplot() + 
+  geom_sf(data = nyc, aes(fill = Height), color = NA) +
+  scale_fill_distiller("Height (m)", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6)) +
+  theme(legend.position = c(0.88, 0.14)) +
+  # make legend smaller
+  theme(legend.text = element_text(size = 8)) +
+  theme(legend.title = element_text(size = 8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  # transparent legend background
+  theme(legend.background = element_rect(fill = "transparent"))
+
+```
+
+:::
+:::
+
+
+
+
+
+
+
+## Lines
+
+- Lines are also made up of vertices
+- But they are not closed
+
+
+
+## Lines example - "Primary" roads in India (2014)
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+roads <- read_sf("day2files/indiaprimaryroads.shp")
+
+ggplot() + 
+  geom_sf(data = roads, color = kdisgreen) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+## One road
+
+<br><br><br>
+Length of this line feature: `r round(st_length(st_transform(roads[1,], 24378)), 2)` (m)
+
+<br>
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+vertices <- spatialEco::extract.vertices(roads[1,])
+
+ggplot() + 
+  geom_sf(data = roads[1,], color = kdisgreen) +
+  geom_sf(data = vertices, color = accent, size = 2) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+
+
+## Points
+
+- Points are exactly what they sound like: points!
+
+- What could be a point?
+
+
+
+
+
+## Points
+
+- Points are exactly what they sound like: points!
+
+- What could be a point?
+  - A city
+  - A weather station
+  - A tree
+  - A household
+  - etc.
+
+
+
+
+
+## What do you think this is?
+
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 5
+
+points <- read_sf("day2files/hotosm_kor_railways_points_shp.shp")
+korea <- read_sf("day2files/korea.shp")
+
+ggplot() + 
+  geom_sf(data = points, color = kdisgreen, size = 0.5) +
+  geom_sf(data = korea, fill = NA, color = NA) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+  
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+
+:::
+:::
+
+
+
+
+
+## What do you think this is?
+
+
+::: columns
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 5
+
+points <- read_sf("day2files/hotosm_kor_railways_points_shp.shp")
+korea <- read_sf("day2files/korea.shp")
+
+ggplot() + 
+  geom_sf(data = points, color = kdisgreen, size = 0.5) +
+  geom_sf(data = korea, fill = NA, color = NA) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+  
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 5
+
+ggplot() + 
+  geom_sf(data = points, color = kdisgreen, size = 0.5) +
+  geom_sf(data = korea, fill = NA, color = kdisgray) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+  
+
+```
+
+:::
+:::
+
+
+
+
+
+## Train stations! First 15
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 8
+
+mat <- head(points |> select(name, name_en, railway, geometry) |> st_centroid(), 16)[-7,]
+kable(mat, align = c("l", "l", "c", "c"), table.attr = "style='width:80%;'") |>
+  kable_minimal()
+  
+
+```
+
+
+
+
+
+## The train stations are a collection of features
+
+- Just like before, the shapefile is a collection of features!
+- The only difference now is that each feature is a point
+
+
+
+
+
+
+
+
+
+# Reading and plotting shapefiles in R
+
+```{r}
+#| echo: false
+#| include: true
+#| crop: true
+#| fig-height: 2
+#| fig-align: left
+
+gambia <- read_sf("day2files/gambia.shp")
+
+ggplot() + 
+  geom_sf(data = gambia, color = kdisgreen, fill = "#f0f1eb") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  # smaller axis labels
+  theme(axis.text = element_text(size = 6))
+  
+
+```
+
+
+
+## Reading shapefiles in R
+
+- My go-to package for shapefiles in R is `sf`
+- Reading shapefiles is VERY easy! And you can treat them like dataframes.
+
+```{r}
+#| echo: true
+#| include: true
+#| fig-align: center
+#| crop: true
+
+library(sf)
+# this is the shapefile for Gambia
+gambia <- read_sf("day2files/gambia.shp")
+gambia
+```
+
+
+
+
+
+
+
+## Plotting is also very easy
+
+
+```{r}
+#| echo: true
+#| include: true
+#| crop: true
+#| fig-align: center
+
+ggplot() + 
+  geom_sf(data = gambia)
+```
+
+
+
+
+
+
+
+
+## My go-to theme
+
+
+```{r}
+#| echo: true
+#| include: true
+#| crop: true
+#| fig-align: center
+ggplot() +
+  geom_sf(data = gambia) +
+  theme_bw()
+```
+
+
+
+
+
+
+
+## Other changes you can make
+
+
+```{r}
+#| echo: true
+#| include: true
+#| crop: true
+#| fig-align: center
+ggplot() +
+  geom_sf(data = gambia, fill = "#f0f1eb", color = "#006334") +
+  theme_bw() +
+  labs(subtitle = "Admin3s in Gambia")
+```
+
+
+
+
+
+
+
+## Give it a try with TAs (admin3) in Malawi (mw3.shp)
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: true
+library(sf)
+# this is the shapefile for the northern region of Malawi, TA level
+northmw <- read_sf("day2files/mw3.shp")
+ggplot() +
+  geom_sf(data = northmw)
+```
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-fold: true
+
+ggplot() +
+  geom_sf(data = northmw) +
+  theme_bw() +
+  labs(subtitle = "TAs in Northern Malawi")
+```
+
+
+
+
+
+
+## One more example - map from earlier
+
+
+::: columns
+::: {.column width="65%"}
+
+```{r}
+#| echo: true
+#| eval: false
+#| crop: true
+#| fig-align: center
+
+admin2 <- read_sf("day2files/mw2.shp")
+
+ggplot() + 
+  geom_sf(data = admin2, 
+    fill = "white", color = kdisgray) +
+  geom_sf(data = admin2 |> filter(DIST_CODE=="107"), 
+    fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "Districts in Northern Malawi")
+```
+
+:::
+
+::: {.column width="35%"}
+
+![](day2assets/exampleplot.png){fig-align="center"}
+
+:::
+:::
+
+
+
+
+
+
+
+## What if we want to plot mw2, mw3, and mw4?
+
+
+```{r}
+#| echo: false
+#| eval: true
+#| crop: true
+#| fig-align: center
+
+admin2 <- read_sf("day2files/mw2.shp")
+admin3 <- read_sf("day2files/mw3.shp")
+admin4 <- read_sf("day2files/mw4.shp")
+
+g1 <- ggplot() + 
+  geom_sf(data = admin2, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "A. Admin2 (districts)")
+g2 <- ggplot() + 
+  geom_sf(data = admin3, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "B. Admin3 (TAs)")
+g3 <- ggplot() + 
+  geom_sf(data = admin4, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "C. Admin4 (EAs)")
+
+plot_grid(g1, g2, g3, ncol = 3)
+```
+
+
+
+
+
+
+
+## What if we want to plot mw2, mw3, and mw4?
+
+```{r}
+#| echo: true
+#| eval: false
+#| crop: true
+#| fig-align: center
+
+admin2 <- read_sf("day2files/mw2.shp")
+admin3 <- read_sf("day2files/mw3.shp")
+admin4 <- read_sf("day2files/mw4.shp")
+
+g1 <- ggplot() + 
+  geom_sf(data = admin2, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "A. Admin2 (districts)")
+g2 <- ggplot() + 
+  geom_sf(data = admin3, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "B. Admin3 (TAs)")
+g3 <- ggplot() + 
+  geom_sf(data = admin4, fill = "white", color = "black") +
+  theme_bw() + labs(subtitle = "C. Admin4 (EAs)")
+```
+
+
+
+
+
+
+
+## What if we want to plot mw2, mw3, and mw4?
+
+- Enter `cowplot`!
+
+```{r}
+#| echo: true
+#| eval: false
+#| crop: true
+#| fig-align: center
+
+library(cowplot)
+
+plot_grid(g1, g2, g3, ncol = 3)
+```
+
+
+
+
+## A quick note about shapefile sizes
+
+- What do you think is the main determinant of the size of a shapefile?
+
+. . .
+
+- The number of vertices!
+  - Geographic size doesn't really matter!
+
+. . .
+
+- For the three Malawi shapefiles?
+  - `mw2.shp`: 448 KB
+  - `mw3.shp`: 4.9 MB
+  - `mw4.shp`: 40.3 MB
+
+. . .
+
+- And this is only for Northern Malawi.
+  - The entire country is 123 MB
+  - The 2023 shapefile from OSM for Indian roads is 236 MB
+  - The shapefile of Indian villages is 614 MB
+
+
+
+
+## And that's only shapefile
+
+- Other geospatial data can get even bigger!
+
+- How large do you think the folder on my computer that contains imagery for all of Malawi (at 5m resolution) is?
+
+. . .
+
+- About 55 GB!
+
+- This is just a warning... 
+
+
+
+
+
+
+
+# Let's talk about coordinates
+
+
+
+
+## Latitude and longitude on a globe
+
+- The most common `coordinate reference system (CRS)` is latitude/longitude
+  - Latitude: North/South
+  - Longitude: East/West
+  - The equator is at 0° latitude
+  - The prime meridian is at 0° longitude<br><br>
+  
+- But there's a problem with using latitude/longitude
+  - The Earth is a sphere (well, more or less; really an oblate spheroid)
+
+
+
+
+
+## {background-image="day2assets/worldmap.png"}
+
+
+## {background-image="day2assets/worldmap2.png"}
+
+
+
+
+
+## The basic problem
+
+- The basic problem is that one degree of longitude changes at different latitudes!
+  - At the equator, one degree of longitude is about 111 km
+  - At 15N/S, one degree of longitude is about 107 km
+  - At 30N/S, one degree of longitude is about 96 km
+  - At 45N/S, one degree of longitude is about 79 km
+  - At 60N/S, one degree of longitude is about 56 km
+    - This explains Greenland!<br><br>
+    
+- It's not an easy problem to solve, as all solutions have drawbacks!
+
+
+
+
+
+## Preserve shape, give up area
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/crs1.png")
+temp2 <- magick::image_read("day2assets/crs2.png")
+
+
+g1 <- magick::image_ggplot(temp) +
+  labs(subtitle = "A. Mercator projection") +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- magick::image_ggplot(temp2) +
+  labs(subtitle = "B. Lambert projection") +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+plot_grid(g1, NA, g2, ncol = 3, rel_widths = c(1, 0.05, 1)) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+
+
+
+## Projections
+
+- A `projection` is a way to represent the Earth's surface on a flat plane
+  - In other words, it's a way to transform the three-dimensional surface of the earth into two dimensions
+  - Think of this as a way to "flatten" the Earth
+
+. . .
+  
+- "Equal area" projections
+  - These projections preserve the area of features
+- "Conformal" projections
+  - These projections preserve the shape of features
+
+. . .
+  
+- It is impossible to perfectly preserve both!
+  - But they can be close, especially in smaller areas
+  - The earth looks quite flat from close up, after all
+  
+  
+  
+  
+## Robinson projection: compromise across the board
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/robinson.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS")
+  
+
+```
+  
+  
+  
+  
+## Meractor projection: preserves angular relationships
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/mercator.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS")
+
+```
+  
+  
+  
+  
+## Azimuthal Equidistant projection
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/un.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS/UN")
+
+```
+  
+  
+  
+  
+## Mollweide Equal Area Cylindrical projection
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/mollweide.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS")
+
+```
+
+
+  
+  
+
+## Three families of projections
+
+- The [QGIS website](https://docs.qgis.org/3.34/en/docs/gentle_gis_introduction/coordinate_reference_systems.html) has a great explanation of the three families of projections
+  - Cylindrical
+  - Conical
+  - Planar
+  
+  
+  
+  
+## Three families of projections
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/projections.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS")
+
+```
+
+
+
+
+
+
+
+
+## Coordinate reference systems
+
+- Coordinate reference systems (CRS) are a way to define how coordinates are represented
+  - This includes the projection, but also other things
+  
+- The most popular is probably WGS 84 (EPSG:4326), which is a geographic CRS
+  - This is latitude/longitude
+- One degree of lat/lon:
+  - 60 minutes
+- One minute:
+  - 60 seconds
+  
+. . .
+  
+- Geographic here means it is the location on the earth's surface
+  - This is different from a projected CRS, which is more about how to draw the earth on a flat surface
+  
+  
+  
+  
+## Geographic vs. projected
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/gcspcs.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: ESRI")
+
+```
+
+
+
+
+
+
+
+## A common CRS: Universal Transverse Mercator (UTM)
+
+- Universal Transverse Mercator (UTM) is a projected CRS
+  - It divides the world into 60 zones
+  - Each zone is 6° wide
+  - The equator is the origin of each zone
+  - The equator is at 0 m
+
+
+
+
+
+
+
+## Universal Transverse Mercator (UTM)
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/utm.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: QGIS")
+
+```
+
+
+
+
+
+
+
+## A common CRS: Universal Transverse Mercator (UTM)
+
+- UTM defines X values ("longitude") FROM THE MIDDLE of each zone
+  - This middle line is called the central meridian
+
+- UTM defines Y values ("latitude") from the equater
+
+- There are some other details:
+  - UTM values are never negative, so we offset values
+    - This is called a "false easting" and "false northing"
+    - Details aren't super important
+
+- Note: it ignores altitude. It assumes a perfect ellipsoid
+
+
+
+
+
+
+## "Transverse mercator" projection per zone (N and S)
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- magick::image_read("day2assets/utmnew.png")
+
+magick::image_ggplot(temp) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  labs(caption = "Source: Wikipedia")
+
+```
+
+
+
+
+
+
+
+## Projections with `sf`
+
+```{r}
+#| echo: true
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 4
+
+admin2 <- read_sf("day2files/mw2.shp")
+
+# Geographic CRS: WGS 84 - lat/lon
+crs(admin2)
+
+```
+
+
+
+
+
+
+
+## What is the appropriate zone for Malawi?
+
+- Go to Google
+  - Search "UTM CRS Malawi"
+
+- What did you find?
+
+. . .
+
+- UTM zone 36S
+- With the `sf` package, we want to find the "EPSG" code to project
+  - 20936
+
+
+
+
+## What is the appropriate zone for Malawi?
+  
+```{r}
+#| echo: true
+#| include: true
+#| fig-align: center
+#| crop: true
+#| fig-width: 4
+
+admin2proj <- st_transform(admin2, 20936)
+
+# It has changed! Now it's projected
+crs(admin2proj)
+
+```
+
+
+
+
+## They look quite similar!
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+g1 <- ggplot(admin2) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "A. Geographic CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot(admin2proj) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "B. Projected CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(crs = st_crs(20936))
+
+plot_grid(g1, g2) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+
+## They look quite similar! Different coordinates
+
+```{r}
+#| echo: true
+#| evaluate: false
+#| fig-align: center
+#| crop: true
+
+g1 <- ggplot(admin2) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "A. Geographic CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot(admin2proj) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "B. Projected CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(crs = st_crs(20936))
+
+```
+
+
+
+
+## Malawi is small. What about something larger?
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+temp <- read_sf("day2files/state.shp")
+
+g1 <- ggplot(temp) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "A. Geographic CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot(st_transform(temp, 24344)) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "B. Projected CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(crs = st_crs(24344))
+
+plot_grid(g1, g2) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+
+
+
+## Now it's your turn!
+
+- Use the Indian roads shapefile (`indiaprimaryroads.shp`)
+
+- Do the following: 
+  - Find the CRS of the shapefile
+  - Transform the shapefile to UTM zone 44N (EPSG: 24344)
+  - Graph both side by side using `cowplot`
+
+
+
+
+
+
+## The solution
+
+```{r}
+#| echo: true
+#| include: true
+#| fig-align: center
+#| crop: true
+
+roads <- read_sf("day2files/indiaprimaryroads.shp")
+crs(roads)
+
+roadsproj <- st_transform(roads, 24344)
+crs(roadsproj)
+```
+
+
+
+
+
+
+## The solution
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+#| fig-align: center
+#| crop: true
+
+g1 <- ggplot(roads) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "A. Geographic CRS")
+g2 <- ggplot(roadsproj) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "B. Projected CRS") +
+  coord_sf(crs = st_crs(24344))
+
+plot_grid(g1, g2)
+```
+
+
+
+
+
+
+## The solution
+
+```{r}
+#| echo: false
+#| include: true
+#| fig-align: center
+#| crop: true
+
+g1 <- ggplot(roads) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "A. Geographic CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot(roadsproj) +
+  geom_sf(fill = "white", color = kdisgreen) +
+  theme_bw() +
+  labs(subtitle = "B. Projected CRS") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(crs = st_crs(24344))
+
+plot_grid(g1, g2) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+
+## More practice
+
+- I'd like you to find a shapefile for a country of your choice
+  - Ths isn't always easy
+  - I always use Google to find one
+  - One place you can often find something on humdata.org (almost always shows up in the search!)
+  
+- Do the following:
+  - Find the CRS of the shapefile
+  - Transform the shapefile to the appropriate UTM zone for the country
+    - Note that many countries have multiple UTM zones! You can just choose one
+  - Plot them side by side using `cowplot`
+
+
+  
+  
+  
+## Returning to the files
+
+- Shapefiles are made up of _at least_ four files:
+  - `.shp` - the shape itself
+    - The geometry
+  - `.shx` - the index
+    - The "index". You can actual recover the .shx file from the .shp file
+  - `.dbf` - the attributes
+    - The attributes for each features. Could be names, population values, etc.
+  - `.prj` - the projection
+    - The projection information, which we just discussed
+
+- There are often more files, but these are the main ones
+  - You **must** have the first three. The fourth is optional, but common.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
