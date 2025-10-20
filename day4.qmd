@@ -46,6 +46,7 @@ gd_initialize()
 
 ```
 
+
 ## Introduction to geospatial data
 
 -   [One estimate](https://www.ibm.com/topics/geospatial-data) says that 100 TB of only weather data are generated every single day

@@ -1,10 +1,11 @@
 /*-- scss:defaults --*/
 
 
-$kdisgreen: #006334;
-$accent: #340063;
-$accent2: #633400;
-$kdisgray: #A7A9AC;
+$uqpurple: #51247A;
+$accent: #962A8B;
+$accent2: #00A2C7;
+$uqgray: #D7D1CC;
+$uqgray2: #999490;
 $right-arrow: "\2192"; // Unicode character for right arrow
 $hyphen: "\2010"; // Unicode character for right arrow
 $openbullet: "\25CB";
@@ -12,19 +13,19 @@ $openbullet: "\25CB";
 $font-family-sans-serif: "Roboto", sans-serif !default;
 $presentation-heading-font: "Roboto", sans-serif !default;
 
-$presentation-heading-color: $kdisgreen !default;
+$presentation-heading-color: $uqpurple !default;
 $presentation-heading-font-weight: lighter;
 //$presentation-heading-line-height: 2;
 //$presentation-block-margin: 28px;
 $presentation-font-size-root: 32px;
 
 // colors
-//$body-bg: #f0f1eb !default;
-$body-color: $kdisgreen !default;
+$body-bg: $uqgray !default;
+$body-color: $uqpurple !default;
 $link-color: $accent !default;
 $link-font-style: bold;
 $selection-bg: #26351c !default;
-$code-block-bg: mix($kdisgray, white, 40%) !default;
+$code-block-bg: mix($uqgray2, white, 40%) !default;
 $code-block-border-color: $accent2 !default;
 $btn-code-copy-color: $accent2 !default;
 $code-color: $accent !default;
@@ -36,14 +37,14 @@ $code-color: $accent !default;
 
 /* This changes the size of the code block chunks (the font) */
 code.sourceCode {
-  font-size: 1.0em;
+  font-size: 1.5em;
   /* or try font-size: xx-large; */
   margin-bottom: 0px;
 }
 
 // change color of details button (code fold)
 details {
-  background-color: mix($kdisgreen, white, 25%);
+  background-color: mix($uqpurple, white, 25%);
   padding: 5px;
 }
 
@@ -64,6 +65,14 @@ details > summary {
 .reveal .slide blockquote {
   border-left: 3px solid $text-muted;
   padding-left: 0.5em;
+}
+
+// change color of aside
+.reveal .slide aside .aside-footnotes {
+  color: $uqpurple;
+}
+.reveal .slide aside, .reveal .slide div.aside {
+  color: $uqpurple;
 }
 
 
@@ -117,7 +126,7 @@ details > summary {
 }
 
 .reveal h3 {
-  color: $kdisgreen;
+  color: $uqpurple;
   font-style: italic;
   // font-weight: 350;
   font-weight: lighter;
@@ -139,11 +148,11 @@ details > summary {
 }
 
 .fg {
-  color: var(--col, $kdisgreen);
+  color: var(--col, $uqpurple);
 }
 
 .bg {
-  background-color: var(--col, #fff);
+  background-color: var(--col, $uqgray);
   padding: 0.1em;
   border-radius: 5px;
   display: inline-block;
@@ -160,7 +169,7 @@ details > summary {
   padding-left: 16px;
 
   li::marker {
-    color: $kdisgreen;
+    color: $uqpurple;
   }
 }
 
@@ -169,7 +178,7 @@ details > summary {
 
   li:before {
     content: $openbullet;
-    color: $kdisgreen;
+    color: $uqpurple;
     display: inline-block;
     width: 1em;
     margin-left: -1em;
@@ -182,7 +191,7 @@ details > summary {
 
   li:before {
     content: $hyphen;
-    color: $kdisgreen;
+    color: $uqpurple;
     display: inline-block;
     width: 1em;
     margin-left: -1em;
@@ -198,7 +207,7 @@ details > summary {
   padding-left: 16px;
 
   li::marker {
-    color: $kdisgreen;
+    color: $uqpurple;
   }
 }
 
@@ -288,7 +297,7 @@ details > summary {
 .reveal table thead th,
 .reveal .slides table tr:last-child td,
 .reveal .slides table {
-  border-bottom: 2px solid #D3D3D3; /* Dark grey color for the bottom border */
+  border-bottom: 2px solid #999490; /* Dark grey color for the bottom border */
 }
 
 /* Make column headers bold */
@@ -298,7 +307,7 @@ details > summary {
 
 /* Styling table captions */
 .reveal table caption {
-  color: #666666; /* Dark grey color for the caption */
+  color: #999490; /* Dark grey color for the caption */
   font-variant: small-caps; /* Use small caps for the caption text */
 }
 

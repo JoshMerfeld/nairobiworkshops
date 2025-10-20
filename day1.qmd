@@ -2,16 +2,16 @@
 title: "Your country data and more on using R for SAE"
 subtitle: "Nairobi Workshop: Day 1"
 author: 
-  - name: Ann-Kristin Kreutzmann
   - name: Josh Merfeld
-date: "26 August 2024"
+  - name: David Newhouse
+date: "20 October 2025"
 date-format: long
 format: 
   revealjs:
     self-contained: true
     slide-number: false
     progress: false
-    theme: [serif, custom.scss]
+    theme: custom.scss
     width: 1500
     height: 1500*(9/16)
     code-copy: true
@@ -253,11 +253,11 @@ The first thing you'll do in your script is load packages. You do it like this:<
 ```{r}
 #| echo: true
 #| eval: false
-'''
-This script is part of the Nairobi Workshop on SAE.
-Date: 26 August 2024 (written earlier!)
-Author: Josh Merfeld
-'''
+#####################################################
+# This script is part of the Nairobi Workshop on SAE.
+# Date: 20 October 2025 (written earlier!)
+# Author: Josh Merfeld
+#####################################################
 # Load packages (libraries)
 library(tidyverse)
 ```
