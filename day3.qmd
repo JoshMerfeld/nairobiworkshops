@@ -1,13 +1,13 @@
 ---
-title: "Feature selection for SAE"
-subtitle: "Nairobi Workshop: Day 3 (afternoon)"
+title: "Spatial joins, feature selection, and SAE"
+subtitle: "Nairobi Workshop: Day 3"
 author: 
   - name: Josh Merfeld
     affiliation: University of Queensland
   - name: David Newhouse
     affiliation: World Bank
-date: "26 August 2024"
-date-format: long
+date: "20 October 2025"
+
 format: 
   revealjs:
     self-contained: true
@@ -43,20 +43,934 @@ library(ggpubr)
 ```
 
 
-## Feature selection
 
-- Let's start with some example data I have
-  - This comes from Malawi
-    - Northern Malawi only (due to the size of the data)
-  - And we'll use it all day tomorrow!<br><br>
+
+
+# Intersections and spatial joins
+
+## Let's move on to a new topic
+
+- Here's our goal:
+  - We want to count the number of points in each polygon
+  - We want to count points in each ADMIN2 (not admin3)
+
+- We have two files: one is data with lon/lat coordinates and one is admin3 polygons
+  - We need to create a shapefile from the points
+  - We need to aggregate the admin3 to admin2
+  - We need to extract the admin2 identifier into points
+  - Then we need to join the two together
+
+
+
+## What we need
+  
+- Points: `points.csv`
+  - This is a list of health facilities in Malawi
+  - Note that this data is NOT complete (it comes from OpenStreetMap)
+
+- Polygons: `mw3allcountry.shp`
+  - Let's use the entire country
+
+
+
+## Step 1: Load the points
 
 ```{r}
 #| echo: true
 #| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+# note that this function is in tidyverse!
+points <- read_csv("day3files/points.csv")
+```
 
-library(tidyverse)
-surveycollapsed <- read_csv("day3data/ihs5ea.csv")
-predictors <- read_csv("day3data/mosaikvars.csv")
+- Find the name of the columns that represent the coordinates
+  - We'll need these to create the spatial object
+
+. . .
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+
+# Let's turn it into a `terra` object
+points <- vect(points, geom = c("x", "y"), crs = "EPSG:4326") # these are lon/lat
+points
+```
+
+
+
+## Let's just plot the points
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+#| crop: true
+#| fig-align: center
+ggplot() + 
+  geom_spatvector(data = points) +
+  theme_bw()
+```
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+ggplot() + 
+  geom_spatvector(data = points) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+## Now let's load the admin3 and aggregate
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+adm3 <- vect("day3files/mw3allcountry.shp")
+```
+
+- Do you remember how to aggregate to admin2?
+  - You need to use `aggregate` and the column name!
+  - Look at the column names
+
+. . .
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+adm2 <- aggregate(adm3, "ID_2")
+```
+
+
+
+
+
+## Let's plot it
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+#| crop: true
+#| fig-align: center
+ggplot() + 
+  geom_spatvector(data = adm2) +
+  theme_bw()
+```
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| crop: true
+#| fig-align: center
+ggplot() + 
+  geom_spatvector(data = adm2) +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+## Time to extract
+
+- We are going to use the function `relate` to find which adm2 feature the point lies within
+  - This is a spatial join
+  - We are also going to use this to learn a bit more about `R`
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+# let's first make sure it's the same CRS!
+points <- project(points, crs(adm2))
+
+join <- relate(adm2, points, "contains")
+# check the dimensions
+dim(join)
+```
+
+
+
+
+
+## The `apply` function
+
+
+```{=html}
+<table style="width:100%">
+  <caption><span data-qmd="Example data"></span></caption>
+  <thead>
+    <tr style="border-top:1px solid black">
+      <th><span data-qmd=" "></span></th>
+      <th><span data-qmd="col1"></span></th>
+      <th><span data-qmd="col2"></span></th>
+      <th><span data-qmd="col3"></span></th>
+      <th><span data-qmd="col4"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Point 1</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 2</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+    </tr>
+    <tr>
+      <td>Point 3</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 4</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+    </tr>
+    <tr>
+      <td>Point 5</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 6</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+<br>
+
+- Let's look at an example
+- An important note:
+  - If you take the `mean` of logical statements, it treats `TRUE` as 1 and `FALSE` as 0
+  - Same with `sum`
+
+
+
+## The `apply` function
+
+
+```{=html}
+<table style="width:100%">
+  <caption><span data-qmd="Example data"></span></caption>
+  <thead>
+    <tr style="border-top:1px solid black">
+      <th><span data-qmd=" "></span></th>
+      <th><span data-qmd="col1"></span></th>
+      <th><span data-qmd="col2"></span></th>
+      <th><span data-qmd="col3"></span></th>
+      <th><span data-qmd="col4"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Point 1</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 2</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+    </tr>
+    <tr>
+      <td>Point 3</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 4</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+    </tr>
+    <tr>
+      <td>Point 5</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+    <tr>
+      <td>Point 6</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+<br>
+
+- In this data, what happens if we:
+  - Take the `sum` of each row?
+  - What values do we get?
+
+
+
+## The `apply` function
+
+
+```{=html}
+<table style="width:100%">
+  <caption><span data-qmd="Example data"></span></caption>
+  <thead>
+    <tr style="border-top:1px solid black">
+      <th><span data-qmd=" "></span></th>
+      <th><span data-qmd="col1"></span></th>
+      <th><span data-qmd="col2"></span></th>
+      <th><span data-qmd="col3"></span></th>
+      <th><span data-qmd="col4"></span></th>
+      <th><span data-qmd="sum"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Point 1</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 2 </td>
+    </tr>
+    <tr>
+      <td>Point 2</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+    </tr>
+    <tr>
+      <td>Point 3</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 2 </td>
+    </tr>
+    <tr>
+      <td>Point 4</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> 2 </td>
+    </tr>
+    <tr>
+      <td>Point 5</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 1 </td>
+    </tr>
+    <tr>
+      <td>Point 6</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 3 </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+. . .
+
+- We can use the `apply` function to do this!
+  - `data$sum = apply(data, 1, "sum")`
+  - This will sum each row and put it in a new column called `sum`
+  - What happens if we instead use `"mean"`?
+- The `1` denotes doing this by row... how do we apply the function by column?
+
+
+
+## The `apply` function
+
+
+```{=html}
+<table style="width:100%">
+  <caption><span data-qmd="Example data"></span></caption>
+  <thead>
+    <tr style="border-top:1px solid black">
+      <th><span data-qmd=" "></span></th>
+      <th><span data-qmd="col1"></span></th>
+      <th><span data-qmd="col2"></span></th>
+      <th><span data-qmd="col3"></span></th>
+      <th><span data-qmd="col4"></span></th>
+      <th><span data-qmd="mean"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Point 1</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.5 </td>
+    </tr>
+    <tr>
+      <td>Point 2</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.25 </td>
+    </tr>
+    <tr>
+      <td>Point 3</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.5 </td>
+    </tr>
+    <tr>
+      <td>Point 4</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.5 </td>
+    </tr>
+    <tr>
+      <td>Point 5</td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.25 </td>
+    </tr>
+    <tr>
+      <td>Point 6</td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> FALSE </td>
+      <td style='text-align:center; vertical-align:middle'> TRUE </td>
+      <td style='text-align:center; vertical-align:middle'> 0.75 </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+<br>
+
+`data$mean = apply(data, 1, "mean")`
+
+
+
+## Back to our data
+
+- Check the dimensions of the data
+  - What do rows and what do columns represent?
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| class-output: hscroll
+dim(join)
+join
+```
+
+
+
+## How do we use `apply` here?
+
+- So the columns are POINTS and the rows are POLYGONS (adm2)
+- What do we want to do?
+
+. . .
+
+- We want to find the number of points in each polygon
+  - It is `TRUE/FALSE` so we want to `sum` BY rows!
+
+
+
+## How do we use `apply` here?
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| class-output: hscroll
+
+adm2$points = apply(join, 1, "sum")
+adm2$points
+```
+
+
+
+## Now we can graph it!
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+
+ggplot() + 
+  geom_spatvector(data = adm2, aes(fill = points)) +
+  scale_fill_distiller("Number of\npoints", palette = "Spectral") +
+  theme_bw()
+```
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+ggplot() + 
+  geom_spatvector(data = adm2, aes(fill = points)) +
+  scale_fill_distiller("Number of\npoints", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+## Make it a little nicer
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+
+ggplot() + 
+  geom_spatvector(data = adm2, aes(fill = points), color = NA) +
+  scale_fill_distiller("Number of\npoints", palette = "Spectral") +
+  theme_bw()
+```
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+ggplot() + 
+  geom_spatvector(data = adm2, aes(fill = points), color = NA) +
+  scale_fill_distiller("Number of\npoints", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+## Extract admin information to points
+
+- What if we have our household survey data and we want to figure out within which admin area a point lies?
+
+
+
+## It looks like this
+
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+# households are not currently a vector file
+households <- read_dta("day3files/households.dta")
+households
+
+# turn them into a vector file like this
+households <- vect(households, geom = c("ea_lon_mod", "ea_lat_mod"), crs = "EPSG:4326")
+
+```
+
+
+## A map
+
+```{r}
+#| echo: false
+#| eval: true
+
+ggplot() +
+  geom_spatvector(data = adm2, fill = NA) +
+  geom_spatvector(data = households) +
+  theme_bw()
+```
+
+
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+# easy!
+
+join <- intersect(adm2, households)
+join
+```
+
+
+
+
+
+## Calculating areas and lengths
+
+- We can also calculate areas and lengths!
+
+- `perim` for length
+  - For polygons, it returns the length of the perimeter
+  - For lines, it returns the length of the line
+  
+- `expanse` for area
+  - Returns the area of polygons
+  - What will it return for lines or points?
+
+- Believe it or not, using lon/lat gives the most accurate results!
+  - This is because of the [haversine formula](https://en.wikipedia.org/wiki/Haversine_formula)
+
+
+
+
+
+## Area
+
+- Let's use the `adm3` shapefile
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+adm3$area <- expanse(adm3, unit="km", transform = TRUE)
+```
+
+- Unit: do you want $km^2$ or $m^2$?
+- Transform: automatically transform to lon/lat?
+  - Always do this. `terra` documentation says this will be more accurate
+
+
+
+
+
+## Area
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+ggplot() + 
+  geom_spatvector(data = adm3, aes(fill = log(area)), color = NA) +
+  scale_fill_distiller("Area\n(log sq km)", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+## Perimeter
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+adm3$perimeter <- perim(adm3 |> project("EPSG:4326"))
+```
+
+<br>
+
+- This automatically gives length in meters
+- You can add `project` with a pipe operator `|>` to transform to lon/lat
+
+
+
+
+
+## Perimeter
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+ggplot() + 
+  geom_spatvector(data = adm3, aes(fill = log(perimeter)), color = NA) +
+  scale_fill_distiller("Perimeter\n(log km)", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+## More distances
+
+- We have points for households
+- We have points for health facilities
+
+- We can calculate the distance between each household and each health facility
+  - Finding distances between points is a common GIS task!
+
+
+
+
+
+## Distance matrix
+
+- The name of the households data is `households.dta`
+  - This is a Stata dataset
+  - You can read it using the package `haven`
+  
+- Please go ahead and try loading the dataset and then turning it into a `terra` object
+  - You'll have to find the names of the columns that represent the coordinates
+
+
+
+
+
+## Distance matrix
+  
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+# households
+households <- read_dta("day3files/households.dta")
+households <- vect(households, geom = c("ea_lon_mod", "ea_lat_mod"), crs = "EPSG:4326")
+# health facilities
+# do it in one line!
+health <- vect(read_csv("day3files/points.csv"), geom = c("x", "y"), crs = "EPSG:4326")
+```
+
+
+
+
+
+## Distance matrix
+  
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+distances <- distance(households, health)
+dim(households)
+dim(health)
+dim(distances)
+```
+
+
+
+
+
+## Distance matrix - "Heat map"
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+
+distances <- as_tibble(distances)
+distances$hhid <- 1:nrow(distances)
+# pivot longer
+distances <- pivot_longer(distances, -hhid, names_to = "facility", values_to = "distance")
+distances$facility <- as.numeric(substr(distances$facility, 2, str_length(distances$facility)))
+
+ggplot(distances) + 
+  geom_tile(aes(x = hhid, y = facility, fill = distance/1000), color = NA) +
+  scale_fill_distiller("Distances\n(km)", palette = "Spectral") +
+  theme_bw() +
+  labs(x = "Households", y = "Health facilities") +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+
+
+
+
+## Closest health facility by household
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+distances <- distances |>
+  group_by(hhid) |>
+  summarize(distance = min(distance)) |>
+  ungroup()
+households$distance <- distances$distance
+ggplot() + 
+  geom_spatvector(data = households, aes(color = distance/1000), size = 0.5) +
+  scale_color_distiller("Distances\n(km)", palette = "Spectral") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+```
+
+
+
+
+
+## How did I create the map?
+
+- The `distances` object is a matrix
+  - What are the rows and what are the columns?
+
+. . .
+
+- If we want to find the closest health facility to each household, what do we need to do?
+  - We need to find the minimum distance for each row
+  - Do you remember?
+
+
+
+
+
+## Closest health facility by household
+
+- We can use the `apply` function!
+  - But with `"min"` instead of `"sum"`
+  - The rows are in the same order as the households, so...
+  
+. . .
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: false
+#| fig-align: center
+#| crop: true
+
+distances <- distance(households, health)
+closest <- apply(distances, 1, "min")
+
+# they're in the same order!
+households$closest <- closest
+
+ggplot() + 
+  geom_spatvector(data = households, aes(color = closest/1000), size = 0.5) +
+  scale_color_distiller("Distances\n(km)", palette = "Spectral") +
+  theme_bw()
+```
+  
+
+
+
+
+# More advanced operations
+
+## Let's go over some more advanced operations
+
+- This stuff will spillover into next week
+
+- First up:
+  - Spatial overlap
+
+
+
+
+
+
+
+## A grid in Korea - `kgrid.zip`
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+
+kshape <- vect("day3files/kshape.shp")
+kgrid <- vect("day3files/kgrid.shp")
+
+ggplot() + 
+  geom_spatvector(data = kgrid, fill = NA) + 
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
 ```
 
 
@@ -65,18 +979,247 @@ predictors <- read_csv("day3data/mosaikvars.csv")
 
 
 
+## A grid in Korea - `kgrid.zip`
+
+- We will discuss how to make a grid after we learn about rasters
+
+- For now, the grid is a shapefile
+
+- A very common operation:
+  - We want to know which province/city each grid cell is in
+  - This isn't straightforward. Why?
+
+. . .
+
+- A grid cell can overlap multiple provinces/cities
+
+
+
+
+
+
+
+## The data
+
+- Here is the data:
+  - `kshape.shp` is the shapefile of the provinces/cities
+  - `kgrid.shp` is the grid
+  - I have uploaded .zip files for both
+
+<br>
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+kshape <- vect("day3files/kshape.shp")
+kgrid <- vect("day3files/kgrid.shp")
+kgrid
+```
+
+
+
+
+
+
+
+## The `intersect` function from `terra`
+
+- We are going to use the `intersect` function
+
+- Here's what it will do:
+  - It will find the intersection of the grid cell and the province/city
+  - Except, it will return a new feature for EACH overlap
+  
+- Let's look at some maps
+
+
+
+## The `intersect` function from `terra`
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+g1 <- ggplot() + 
+  geom_spatvector(data = kshape, fill = NA) +
+  theme_bw() +
+  labs(subtitle = "A. Provinces/cities") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+g2 <- ggplot() + 
+  geom_spatvector(data = kgrid, fill = NA) +
+  theme_bw() +
+  labs(subtitle = "B. Grids") +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+plot_grid(g1, g2) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+
+```
+
+
+
+## The `intersect` function from `terra`
+
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+intersection <- intersect(kgrid, kshape)
+intersection
+kgrid
+
+```
+
+
+
+## One grid cell, multiple overlaps
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+ggplot() +
+  geom_spatvector(data = intersection[intersection$id==940,]) +
+  geom_spatvector(data = kgrid[kgrid$id==940,], fill = NA) +
+  geom_spatvector(data = intersect(kshape, ext(intersection[intersection$id==940,])), aes(fill = CTP_ENG_NM)) +
+  scale_fill_brewer("Province", palette = "Set3") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(datum = sf::st_crs(5179))
+
+```
+
+
+
+## One grid cell, multiple overlaps
+
+```{r}
+#| echo: false
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+
+intersection$area <- round(expanse(intersection)/(1000^2), 3)
+ggplot() +
+  geom_spatvector(data = intersection[intersection$id==940,], aes(fill = as.factor(area))) +
+  geom_spatvector(data = kgrid[kgrid$id==940,], fill = NA) +
+  scale_fill_brewer("Area of\noverlap\n(sq km)", palette = "Set3") +
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  coord_sf(datum = sf::st_crs(5179))
+
+```
+
+
+
+## Area of overlap
+
+- So what do we want to do?
+  - Let's find the area of overlap for each grid cell and each province/city
+  - Then let's take the LARGEST overlap and assign that to the grid cell
+  - In practice, depending on the context, you could use a weighted mean or something else
+    - This won't work with categorical variables, though
+    
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+# Get area of all overlaps
+intersection$area <- expanse(intersection)
+# turn it into a tibble
+intersection <- as_tibble(intersection)
+# Get the largest overlap
+intersection <- intersection |> group_by(id) |> filter(area==max(area)) |> ungroup()
+
+```
+
+
+
+## Area of overlap
+
+    
+```{r}
+#| echo: true
+#| include: true
+#| eval: true
+#| fig-align: center
+#| crop: true
+intersection
+kgrid
+```
+
+
+
+
+
+
+
+
+
+## Intro to SAE
+
+- Let's start with some example data I have
+  - This comes from Malawi
+    - Northern Malawi only (due to the size of the data)
+
+```{r}
+#| echo: true
+#| include: true
+
+library(tidyverse)
+surveycollapsed <- read_csv("day3files/ihs5ea.csv")
+predictors <- read_csv("day3files/mosaikvars.csv")
+```
+
+
+
+
+## A short explanation of SAE
+
+- Small area estimation terminology:
+  - In Malawi, we want to estimate poverty at the admin3 (TA) level
+
+- Admin3: "area"
+- Admin4: "subarea"
+
+
+
+
+
 ## A short explanation
 
-
-- The survey data is collapsed to the admin3 level (TAs)
-  - This is the `area`, in SAE terminology
-  - I have poverty rates for `areas` (TAs) and `subareas` (EAs)
-  - I have some variables that predict poverty at the `subarea` level<br><br>
+- We have poverty rates for `subareas` (EAs)
+  - We pulled geospatial data at the `subarea` level, as well<br><br>
 
 - So it's a perfect setup for SAE!
   - We want to estimate poverty at the TA
   - We don't have any observations in some TAs and we have too few in others
   - We could estimate a subarea model
+
+
 
 
 
@@ -92,13 +1235,13 @@ predictors <- read_csv("day3data/mosaikvars.csv")
 #| fig-align: center
 
 
-adm4 <- read_sf("day3data/mw4.shp")
+adm4 <- read_sf("day3files/mw4.shp")
 adm4 <- adm4 |>
   mutate(EA_CODE = as.numeric(EA_CODE)) |>
   left_join(surveycollapsed, by = "EA_CODE")
 adm4$insample <- "No"
 adm4$insample[!is.na(adm4$poor)] <- "Yes"
-adm3 <- read_sf("day3data/mw3.shp")
+adm3 <- read_sf("day3files/mw3.shp")
 surveyTA <- surveycollapsed |>
   mutate(TA_CODE = substr(EA_CODE, 1, 5)) |>
   group_by(TA_CODE) |>
@@ -504,11 +1647,9 @@ allvariables
 
 
 
-
-
 ## How do we use this with ebp?
 
-- In EBP, we need a `formula`
+- In our SAE model, we need a `formula`
 - How do we turn this into a formula?
   - We need to add the outcome variable (poor) `and` combine the predictors with `+`
 
@@ -520,6 +1661,24 @@ ebpformula
 ```
 
 
+
+
+
+
+
+
+
+
+## `povmap` and EBP
+
+- We are going to use an `EBP` (empirical best predictor) model
+- We will use the package `povmap`:
+
+```{r}
+#| eval: false
+#| echo: true
+install_github("SSA-Statistical-Team-Projects/povmap", ref = "david3")
+```
 
 
 
@@ -610,6 +1769,11 @@ summary(ebp)
 
 estimators(ebp, "Mean", MSE = TRUE, CV = TRUE)
 ```
+
+
+
+
+
 
 
 
