@@ -1,7 +1,7 @@
 # Nairobi Workshops
 
-- This repository includes all of the material for Josh Merfeld's presentations at the UN Workshops in late August in Nairobi.
-  - This material includes my slides (with all of the example code) and all of the data I'll be showing you.
+- This repository includes all of the material for Josh Merfeld's presentations at the UN Workshops in October in Nairobi.
+  - This material includes my slides (with all of the example code) and all of the data I'll be showing you. Note that I very much suggest the HTML version of slides. The pdf versions are very large and do not have all of the same functionality as the HTML versions.
 
 - You can find the slides in the following locations (note that pdf slides will not have any animations):
   - Day1:
