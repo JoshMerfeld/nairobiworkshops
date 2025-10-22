@@ -7,8 +7,8 @@
   - Day1:
     - [Day 1 slides](https://joshmerfeld.github.io/nairobiworkshops/day1.html)
     - [Day 1 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day1.pdf)
-    - [Day 1 data](day1data/data)
   - Day1/2 (vector files):
     - [Day 2 slides](https://joshmerfeld.github.io/nairobiworkshops/day2.html)
     - [Day 2 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day2.pdf)
-    - [Day 2 data](day2data/data)
+  - Day3 (more on geospatial plus SAE):
+    - [Day 2 slides](https://joshmerfeld.github.io/nairobiworkshops/day3.html)
