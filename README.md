@@ -11,4 +11,4 @@
     - [Day 2 slides](https://joshmerfeld.github.io/nairobiworkshops/day2.html)
     - [Day 2 slides in pdf](https://joshmerfeld.github.io/nairobiworkshops/day2.pdf)
   - Day3 (more on geospatial plus SAE):
-    - [Day 2 slides](https://joshmerfeld.github.io/nairobiworkshops/day3.html)
+    - [Day 3 slides](https://joshmerfeld.github.io/nairobiworkshops/day3.html)
