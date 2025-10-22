@@ -29,8 +29,8 @@ execute:
 ```{r}
 #| label: setup
 #| include: false
-widthdefault <- getOption("width")
-options(width = 1500)
+knitr::knit_hooks$set(crop = knitr::hook_pdfcrop)
+
 library(tidyverse)
 library(sf)
 library(cowplot)
@@ -43,7 +43,14 @@ library(ggpubr)
 ```
 
 
-
+```{css}
+code {
+  font-size: 3em; /* Adjust as needed */
+}
+code.sourceCode {
+  font-size: 3em; /* Adjust as needed */
+}
+```
 
 
 # Intersections and spatial joins
@@ -126,7 +133,7 @@ ggplot() +
 ggplot() + 
   geom_spatvector(data = points) +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -156,7 +163,7 @@ adm3 <- vect("day3files/mw3allcountry.shp")
 #| eval: true
 #| crop: true
 #| fig-align: center
-adm2 <- aggregate(adm3, "ID_2")
+adm2 <- aggregate(adm3, "DIST_NAME")
 ```
 
 
@@ -185,7 +192,7 @@ ggplot() +
 ggplot() + 
   geom_spatvector(data = adm2) +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -572,8 +579,8 @@ ggplot() +
   geom_spatvector(data = adm2, aes(fill = points)) +
   scale_fill_distiller("Number of\npoints", palette = "Spectral") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -602,9 +609,9 @@ ggplot() +
   geom_spatvector(data = adm2, aes(fill = points), color = NA) +
   scale_fill_distiller("Number of\npoints", palette = "Spectral") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -716,9 +723,9 @@ ggplot() +
   geom_spatvector(data = adm3, aes(fill = log(area)), color = NA) +
   scale_fill_distiller("Area\n(log sq km)", palette = "Spectral") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -759,9 +766,9 @@ ggplot() +
   geom_spatvector(data = adm3, aes(fill = log(perimeter)), color = NA) +
   scale_fill_distiller("Perimeter\n(log km)", palette = "Spectral") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -881,9 +888,9 @@ ggplot() +
   geom_spatvector(data = households, aes(color = distance/1000), size = 0.5) +
   scale_color_distiller("Distances\n(km)", palette = "Spectral") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
 
 
@@ -967,9 +974,9 @@ kgrid <- vect("day3files/kgrid.shp")
 ggplot() + 
   geom_spatvector(data = kgrid, fill = NA) + 
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 
 ```
 
@@ -1049,20 +1056,20 @@ g1 <- ggplot() +
   geom_spatvector(data = kshape, fill = NA) +
   theme_bw() +
   labs(subtitle = "A. Provinces/cities") +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 g2 <- ggplot() + 
   geom_spatvector(data = kgrid, fill = NA) +
   theme_bw() +
   labs(subtitle = "B. Grids") +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 plot_grid(g1, g2) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb"))
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 
 ```
 
@@ -1100,9 +1107,9 @@ ggplot() +
   geom_spatvector(data = intersect(kshape, ext(intersection[intersection$id==940,])), aes(fill = CTP_ENG_NM)) +
   scale_fill_brewer("Province", palette = "Set3") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
   coord_sf(datum = sf::st_crs(5179))
 
 ```
@@ -1124,9 +1131,9 @@ ggplot() +
   geom_spatvector(data = kgrid[kgrid$id==940,], fill = NA) +
   scale_fill_brewer("Area of\noverlap\n(sq km)", palette = "Set3") +
   theme_bw() +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(plot.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
-  theme(legend.background = element_rect(fill = "#f0f1eb", color = "#f0f1eb")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(legend.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
   coord_sf(datum = sf::st_crs(5179))
 
 ```

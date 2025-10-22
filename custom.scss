@@ -35,12 +35,12 @@ $code-color: $accent !default;
 
 /*-- scss:rules --*/
 
-/* This changes the size of the code block chunks (the font) */
+/* This changes the size of the code block chunks (the font) 
 code.sourceCode {
   font-size: 1.5em;
-  /* or try font-size: xx-large; */
+  or try font-size: xx-large;
   margin-bottom: 0px;
-}
+} */
 
 // change color of details button (code fold)
 details {
