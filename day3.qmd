@@ -650,8 +650,13 @@ households <- vect(households, geom = c("ea_lon_mod", "ea_lat_mod"), crs = "EPSG
 ggplot() +
   geom_spatvector(data = adm2, fill = NA) +
   geom_spatvector(data = households) +
-  theme_bw()
+  theme_bw() +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC")) +
+  theme(plot.background = element_rect(fill = "#D7D1CC", color = "#D7D1CC"))
 ```
+
+
+## A map
 
 
 
@@ -660,7 +665,7 @@ ggplot() +
 #| include: true
 #| eval: true
 # easy!
-
+households <- project(households, crs(adm2))
 join <- intersect(adm2, households)
 join
 ```
@@ -1775,6 +1780,23 @@ summary(ebp)
 #| class-output: hscroll
 
 estimators(ebp, "Mean", MSE = TRUE, CV = TRUE)
+```
+
+
+
+
+
+
+
+
+## Using `write.excel`
+
+```{r}
+#| echo: true
+#| include: true
+#| class-output: hscroll
+
+write.excel(ebp, file = "results.xlsx", indicator = "Mean", MSE = TRUE, CV = TRUE)
 ```
 
 
